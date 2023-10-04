@@ -5,74 +5,31 @@ from dateutil.rrule import rrule, WEEKLY, DAILY, MONTHLY, YEARLY, SU, MO, TU, WE
 
 
 class Rule(models.Model):
-    """
-    This model defines a rule for recurring events. It allows you to specify the recurrence frequency, interval,
-    and optional start and end dates. You can also set frequency-specific details like the day of the week,
-    day of the month, or month of the year.
-
-    Fields:
-    - frequency (str): The frequency of recurrence, such as "Daily," "Weekly," "Monthly," or "Yearly."
-    - interval (int): The number of units between each recurrence (e.g., days, weeks, months).
-    - start_date (date): An optional start date for the recurrence rule.
-    - end_date (date): An optional end date for the recurrence rule.
-    - weekday (int): For weekly recurrence, specifies the day of the week (0 for Monday, 1 for Tuesday, etc.).
-    - day_of_month (int): For monthly recurrence, specifies the day of the month (1 to 31).
-    - month_of_year (int): For yearly recurrence, specifies the month of the year (1 for January, 2 for February, etc.).
-
-    Example usage:
-
-    # Creating a rule for a weekly recurrence, every two weeks, starting on January 1, 2023, and ending on March 31, 2023,
-    # occurring on Mondays (0).
-    weekly_rule = Rule.objects.create(
-        frequency=WEEKLY,
-        interval=2,
-        start_date=date(2023, 1, 1),
-        end_date=date(2023, 3, 31),
-        weekday=0
-    )
-
-    # Generating a list of dates based on the rule within a specific date range
-    start_date = date(2023, 1, 1)
-    end_date = date(2023, 3, 31)
-    rrule_object = weekly_rule.get_rrule()
-    dates = [dt.date() for dt in rrule_object.between(start_date, end_date)]
-
-    """
-
-    class Frequency(models.IntegerChoices):
-        YEARLY = YEARLY, "Yearly"
-        MONTHLY = MONTHLY, "Monthly"
-        WEEKLY = WEEKLY, "Weekly"
-        DAILY = DAILY, "Daily"
-
-    class Weekday(models.IntegerChoices):
-        MO = MO.weekday, "Monday"
-        TU = TU.weekday, "Tuesday"
-        WE = WE.weekday, "Wednesday"
-        TH = TH.weekday, "Thursday"
-        FR = FR.weekday, "Friday"
-        SA = SA.weekday, "Saturday"
-        SU = SU.weekday, "Sunday"
-
-    frequency = models.IntegerField(choices=Frequency.choices)
-    interval = models.PositiveIntegerField(default=1)
-
-    # Optional start and end dates
-    start_date = models.DateField(null=True, blank=True)
+    frequency = models.CharField(max_length=100, choices=[
+        ("Yearly", "Yearly"),
+        ("Monthly", "Monthly"),
+        ("Biweekly", "Biweekly"),
+        ("Weekly", "Weekly"),
+        ("Daily", "Daily"),
+    ])
+    start_date = models.DateField()
     end_date = models.DateField(null=True, blank=True)
-
-    # Additional fields for frequency-specific details
-    weekday = models.IntegerField(
-        null=True, blank=True, choices=Weekday.choices)
-    day_of_month = models.IntegerField(
-        null=True, blank=True, validators=[
-            MinValueValidator(1), MaxValueValidator(31)])
-    month_of_year = models.IntegerField(
-        null=True, blank=True, validators=[
-            MinValueValidator(1), MaxValueValidator(12)])
+    weekday = models.CharField(max_length=100, null=True, blank=True, choices=[
+        ("Monday", "Monday"),
+        ("Tuesday", "Tuesday"),
+        ("Wednesday", "Wednesday"),
+        ("Thursday", "Thursday"),
+        ("Friday", "Friday"),
+        ("Saturday", "Saturday"),
+        ("Sunday", "Sunday")
+    ])
+    day_of_month = models.PositiveIntegerField(null=True, blank=True, validators=[
+        MinValueValidator(1), MaxValueValidator(31)])
+    month_of_year = models.PositiveIntegerField(null=True, blank=True, validators=[
+        MinValueValidator(1), MaxValueValidator(12)])
 
     def __str__(self):
-        return f"{self.get_frequency_display()} - every {self.interval}"
+        return f"{self.frequency}"
 
     def get_rrule(self):
         """
@@ -84,18 +41,23 @@ class Rule(models.Model):
             "until": self.end_date,
         }
 
-        if self.frequency == DAILY:
+        if self.frequency == "Daily":
             return rrule(DAILY, **params)
 
-        if self.frequency == WEEKLY:
+        if self.frequency == "Weekly":
             params["byweekday"] = self.weekday
             return rrule(WEEKLY, **params)
 
-        if self.frequency == MONTHLY:
+        if self.frequency == "Biweekly":
+            params["byweekday"] = self.weekday
+            params["interval"] = 2
+            return rrule(WEEKLY, **params)
+
+        if self.frequency == "Monthly":
             params["bymonthday"] = self.day_of_month
             return rrule(MONTHLY, **params)
 
-        if self.frequency == YEARLY:
+        if self.frequency == "Yearly":
             params["bymonth"] = self.month_of_year
             params["bymonthday"] = self.day_of_month
             return rrule(YEARLY, **params)
@@ -108,37 +70,26 @@ class Rule(models.Model):
         """
         super().clean()
 
-        if self.frequency == Rule.Frequency.DAILY:
-            if self.weekday is not None or self.day_of_month is not None or self.month_of_year is not None:
-                raise ValidationError(
-                    "Daily frequency should not have weekday, day_of_month, or month_of_year.")
-
-        if self.frequency == Rule.Frequency.WEEKLY:
-            if self.day_of_month is not None or self.month_of_year is not None:
-                raise ValidationError(
-                    "Weekly frequency should not have day_of_month or month_of_year.")
-
+        if self.frequency == "Weekly" or self.frequency == "Biweekly":
             if self.weekday is None:
                 raise ValidationError(
-                    "Weekly frequency should have weekday.")
+                    "Weekly and biweekly frequencies should have weekday.")
 
-        if self.frequency == Rule.Frequency.MONTHLY:
-            if self.weekday is not None or self.month_of_year is not None:
-                raise ValidationError(
-                    "Monthly frequency should not have weekday or month_of_year.")
-
+        if self.frequency == "Monthly":
             if self.day_of_month is None:
                 raise ValidationError(
                     "Monthly frequency should have day_of_month.")
 
-        if self.frequency == Rule.Frequency.YEARLY:
-            if self.weekday is not None:
-                raise ValidationError(
-                    "Yearly frequency should not have weekday.")
-
+        if self.frequency == "Yearly":
             if self.month_of_year is None or self.day_of_month is None:
                 raise ValidationError(
                     "Yearly frequency should have month_of_year and day_of_month.")
+
+    def get_occurrences(self, start_date, end_date):
+        """
+        Returns a list of occurrences between start and end.
+        """
+        return self.get_rrule().between(start_date, end_date, inc=True)
 
     def save(self, *args, **kwargs):
         self.full_clean()
@@ -186,7 +137,7 @@ class Category(models.Model):
         ("Income", "Income"),
         ("Savings", "Savings"),
     ])
-    rule = models.ForeignKey(
+    rule = models.OneToOneField(
         Rule,
         on_delete=models.SET_NULL,
         null=True,

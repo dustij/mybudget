@@ -17,12 +17,6 @@ class RuleViewset(viewsets.ModelViewSet):
     search_fields = "__all__"
     ordering_fields = "__all__"
 
-    def create(self, request, *args, **kwargs):
-        try:
-            return super().create(request, *args, **kwargs)
-        except ValidationError as err:
-            return Response({"detail": err.message_dict["__all__"][0]}, HTTP_400_BAD_REQUEST)
-
 
 class CategoryViewset(viewsets.ModelViewSet):
     queryset = Category.objects.all()
@@ -31,19 +25,37 @@ class CategoryViewset(viewsets.ModelViewSet):
     search_fields = "__all__"
     ordering_fields = "__all__"
 
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+        serializer = self.get_serializer(instance)
+        data = serializer.data
 
-class EnumChoices(views.APIView):
-    def get(self, request):
-        frequency_choices = []
-        for key, display_name in Rule.Frequency.choices:
-            frequency_choices.append(
-                {'key': key, 'display_name': display_name})
+        has_rule = Rule.objects.filter(category=instance).exists()
 
-        weekday_choices = []
-        for key, display_name in Rule.Weekday.choices:
-            weekday_choices.append({'key': key, 'display_name': display_name})
+        data["rule"] = RuleSerializer(
+            Rule.objects.get(category=instance)
+        ).data if has_rule else None
 
-        return Response({
-            "frequency_choices": frequency_choices,
-            "weekday_choices": weekday_choices
-        }, HTTP_200_OK)
+        data["repeat"] = "Yes" if has_rule else "No"
+
+        return Response(data, HTTP_200_OK)
+
+    def list(self, request, *args, **kwargs):
+        queryset = self.filter_queryset(self.get_queryset())
+        serializer = self.get_serializer(queryset, many=True)
+
+        data = serializer.data
+
+        for i in range(len(data)):
+            has_rule = Rule.objects.filter(
+                category=Category.objects.get(name=data[i]["name"])).exists()
+
+            data[i]["rule"] = RuleSerializer(
+                Rule.objects.get(
+                    category=Category.objects.get(name=data[i]["name"]))
+            ).data if has_rule else None
+
+            data[i]["repeat"] = "Yes" if has_rule else "No"
+
+        return Response(data, HTTP_200_OK)
+

@@ -1,119 +1,100 @@
 import React from "react"
 import { FormInput } from "./FormInput"
 import { FormSelect } from "./FormSelect"
+import { formatDate } from "../modules/dateUtils"
 import "../styles/categoryForm.css"
 
-export const CategoryForm = () => {
+export const CategoryForm = (props) => {
+    const [method, setMethod] = React.useState(props.method)
+    const [category, setCategory] = React.useState(props.category)
+    const [isRepeat, setIsRepeat] = React.useState(false)
+    const [isSubmitting, setIsSubmitting] = React.useState(false)
     const [values, setValues] = React.useState({
         name: "",
         amount: "",
-        group: "",
-        repeat: "",
-        repeatFrequency: "Weekly",
+        group: "Fixed",
+        repeat: "No",
+        start_date: formatDate(new Date()),
+        frequency: "Weekly",
         weekday: "",
-        dayOfMonth: "",
-        monthOfYear: ""
+        day_of_month: "",
+        month_of_year: ""
     })
 
-    const [isRepeat, setIsRepeat] = React.useState(false)
+    React.useEffect(() => {
+        document.getElementsByName("name")[0].focus()
+    }, [])
 
-    const inputs = [
-        {
-            id: 1,
-            name: "name",
-            placeholder: "Name",
-            label: "Name",
-            type: "text",
-            errorMessage: "Name is required",
-            required: true
-        },
-        {
-            id: 2,
-            name: "amount",
-            placeholder: "Amount",
-            label: "Amount",
-            type: "number",
-            errorMessage: "Amount is required",
-            required: true
-        },
-    ]
+    React.useEffect(() => {
+        if (isSubmitting) {
+            const url = "http://localhost:8000"
+            if (method === "POST") {
+                if (values.repeat === "No") {
+                    fetch(url + "/api/category", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify(values)
+                    })
+                        .then(res => res.json())
+                        .then(data => console.log(data))
+                        .finally(() => { setIsSubmitting(false) })
+                } else {
+                    fetch(url + "/api/rule", {
+                        method: "POST",
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+                        body: JSON.stringify({
+                            ...values,
+                            day_of_month: values.day_of_month ? values.day_of_month : null,
+                            month_of_year: values.month_of_year ? values.month_of_year : null
+                        })
+                    })
+                        .then(res => res.json())
+                        .then(data => {
+                            console.log(data)
 
-    const selects = [
-        {
-            id: 1,
-            name: "group",
-            placeholder: "Group",
-            label: "Group",
-            errorMessage: "Group must be one of: Fixed, Variable, Discretionary, Income, Savings",
-            options: ["Fixed", "Variable", "Discretionary", "Income", "Savings"],
-            required: true
-        },
-        {
-            id: 2,
-            name: "repeat",
-            placeholder: "Repeat",
-            label: "Repeat",
-            options: ["No", "Yes"],
-            required: true
-        },
-    ]
+                            return {
+                                ...values,
+                                rule: data.id
+                            }
+                        })
+                        .then(updatedValues => {
+                            console.log(updatedValues)
+                            fetch(url + "/api/category", {
+                                method: "POST",
+                                headers: {
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify(updatedValues)
+                            })
+                                .then(res => res.json())
+                                .then(data => console.log(data))
+                                .finally(() => { setIsSubmitting(false) })
+                        })
+                }
+            }
+        }
+    }, [isSubmitting])
 
-    const repeatSelects = [
-        {
-            id: 1,
-            name: "repeatFrequency",
-            placeholder: "Repeat Frequency",
-            label: "Repeat Frequency",
-            errorMessage: "Repeat Frequency must be one of: Weekly, Biweekly, Monthly, Yearly",
-            options: ["Weekly", "Biweekly", "Monthly", "Yearly"],
-            required: true
-        },
-    ]
+    const handleSubmit = (e) => {
+        e.preventDefault()
+        setIsSubmitting(true)
+        console.log("SUBMITTING:", values)
+    }
 
-    const weeklySelects = [
-        {
-            id: 1,
-            name: "weekday",
-            placeholder: "Weekday",
-            label: "Weekday",
-            errorMessage: "Weekday must be one of: Monday, Tuesday, Wednesday, Thursday, Friday, Saturday, Sunday",
-            options: ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"],
-            required: true
-        },
-    ]
+    const handleChange = (e) => {
+        setValues({
+            ...values,
+            [e.target.name]: toTitleCase(e.target.value)
+        })
 
-    const monthlySelects = [
-        {
-            id: 1,
-            name: "dayOfMonth",
-            placeholder: "Day of Month",
-            label: "Day of Month",
-            errorMessage: "Day of Month must be between 1 and 31",
-            options: [...Array(31).keys()].map(i => i + 1),
-            required: true
-        },
-    ]
-
-    const yearlySelects = [
-        {
-            id: 1,
-            name: "monthOfYear",
-            placeholder: "Month of Year",
-            label: "Month of Year",
-            errorMessage: "Month of Year must be one of: January, February, March, April, May, June, July, August, September, October, November, December",
-            options: ["January", "February", "March", "April", "May", "June", "July", "August", "September", "November", "December"],
-            required: true
-        },
-        {
-            id: 2,
-            name: "dayOfMonth",
-            placeholder: "Day of Month",
-            label: "Day of Month",
-            errorMessage: "Day of Month must be between 1 and 31",
-            options: [...Array(31).keys()].map(i => i + 1),
-            required: true
-        },
-    ]
+        if (e.target.name === "repeat") {
+            setIsRepeat(e.target.value === "Yes")
+        }
+    }
 
     const toTitleCase = (str) => {
         return str.replace(
@@ -124,103 +105,102 @@ export const CategoryForm = () => {
         )
     }
 
-    const handleSubmit = (e) => {
-        e.preventDefault()
-    }
-
-    const handleChange = (e) => {
-        setValues({
-            ...values,
-            [e.target.name]: toTitleCase(e.target.value)
-        })
-    }
-
-    const handleRepeatChange = (e) => {
-        setValues({
-            ...values,
-            [e.target.name]: e.target.value
-        })
-        console.log(values)
-        setIsRepeat(e.target.value === "Yes")
-    }
-
     return (
         <form className="categoryForm" onSubmit={handleSubmit}>
             <h1>Category Form</h1>
+            <FormInput
+                name="name"
+                placeholder="Name"
+                label="Name"
+                type="text"
+                errorMessage="Name is required"
+                required={true}
+                value={values.name}
+                onChange={handleChange} />
 
-            {inputs.map(input => (
+            <FormSelect
+                name="group"
+                label="Group"
+                options={["Fixed", "Variable", "Discretionary", "Income", "Savings"]}
+                value={values.group}
+                onChange={handleChange} />
+
+            <FormInput
+                name="amount"
+                placeholder="Amount"
+                label="Amount"
+                type="number"
+                step="0.01"
+                errorMessage="Amount is required"
+                required={true}
+                value={values.amount}
+                onChange={handleChange} />
+
+            <FormSelect
+                name="repeat"
+                label="Repeat"
+                options={["No", "Yes"]}
+                value={values.repeat}
+                onChange={handleChange} />
+
+            {isRepeat &&
                 <FormInput
-                    key={input.id}
-                    {...input}
-                    value={values[input.name]}
-                    onChange={handleChange}
-                />
-            ))}
+                    name="start_date"
+                    placeholder="Start Date"
+                    label="Start Date"
+                    type="date"
+                    errorMessage="Start Date is required"
+                    required={true}
+                    value={values.start_date}
+                    onChange={handleChange} />
+            }
 
-            {selects.map(select => (
+            {isRepeat &&
                 <FormSelect
-                    key={select.id}
-                    {...select}
-                    value={values[select.name]}
-                    onChange={handleRepeatChange}
-                />
-            ))}
+                    name="frequency"
+                    label="Repeat Frequency"
+                    options={["Weekly", "Biweekly", "Monthly", "Yearly"]}
+                    value={values.frequency}
+                    onChange={handleChange} />
+            }
 
-            {isRepeat && (
-                repeatSelects.map(select => (
-                    <FormSelect
-                        key={select.id}
-                        {...select}
-                        value={values[select.name]}
-                        onChange={handleChange}
-                    />
-                ))
+            {isRepeat && (values.frequency === "Weekly" || values.frequency === "Biweekly") && (
+                <FormSelect
+                    name="weekday"
+                    label="Weekday"
+                    options={["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"]}
+                    value={values.weekday}
+                    onChange={handleChange} />
             )}
 
-            {isRepeat && values.repeatFrequency === "Weekly" && (
-                weeklySelects.map(select => (
-                    <FormSelect
-                        key={select.id}
-                        {...select}
-                        value={values[select.name]}
-                        onChange={handleChange}
-                    />
-                ))
+            {isRepeat && (values.frequency === "Monthly" || values.frequency === "Yearly") && (
+                <FormInput
+                    name="day_of_month"
+                    placeholder="Day of Month"
+                    label="Day of Month"
+                    type="number"
+                    min="1"
+                    max="31"
+                    errorMessage="Day of Month is required"
+                    required={true}
+                    value={values.day_of_month}
+                    onChange={handleChange} />
             )}
 
-            {isRepeat && values.repeatFrequency === "Biweekly" && (
-                weeklySelects.map(select => (
-                    <FormSelect
-                        key={select.id}
-                        {...select}
-                        value={values[select.name]}
-                        onChange={handleChange}
-                    />
-                ))
+            {isRepeat && values.frequency === "Yearly" && (
+                <FormInput
+                    name="month_of_year"
+                    placeholder="Month of Year"
+                    label="Month of Year"
+                    type="number"
+                    min="1"
+                    max="12"
+                    errorMessage="Month of Year is required"
+                    required={true}
+                    value={values.month_of_year}
+                    onChange={handleChange} />
             )}
-
-            {isRepeat && values.repeatFrequency === "Monthly" && (
-                monthlySelects.map(select => (
-                    <FormSelect
-                        key={select.id}
-                        {...select}
-                        value={values[select.name]}
-                        onChange={handleChange}
-                    />
-                ))
-            )}
-
-            {isRepeat && values.repeatFrequency === "Yearly" && (
-                yearlySelects.map(select => (
-                    <FormSelect
-                        key={select.id}
-                        {...select}
-                        value={values[select.name]}
-                        onChange={handleChange}
-                    />
-                ))
-            )}
-
+            
             <button className="btn btn-primary" type="submit">Submit</button>
         </form>
     )

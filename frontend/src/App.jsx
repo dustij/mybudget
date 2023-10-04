@@ -5,7 +5,7 @@ import "./App.css"
 const App = () => {
     return (
         <div className="app">
-            <CategoryForm />
+            <CategoryForm method={"POST"} />
         </div>
     )
 }

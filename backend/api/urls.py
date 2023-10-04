@@ -9,5 +9,4 @@ router.register("category", views.CategoryViewset)
 
 urlpatterns = [
     path("", include(router.urls)),
-    path("enum_choices", views.EnumChoices.as_view())
 ]
