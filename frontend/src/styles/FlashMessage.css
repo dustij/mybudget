@@ -1,0 +1,49 @@
+.flashMessage {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  z-index: 1000;
+}
+
+.flashMessage button {
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  cursor: pointer;
+}
+
+.flashMessage .message {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.5rem 1rem;
+  font-size: 1.2rem;
+  font-weight: 500;
+  color: #fff;
+  background-color: #646cff;
+  box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
+}
+
+.flashMessage .message.success {
+  background-color: #23d160;
+}
+
+.flashMessage .message.error {
+  background-color: #ff0033;
+}
+
+.flashMessage .message.warning {
+  background-color: #ffdd57;
+}
+
+.flashMessage .message.info {
+  background-color: #00d1b2;
+}

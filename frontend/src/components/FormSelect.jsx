@@ -1,19 +1,16 @@
-import React from 'react'
-import '../styles/formInput.css'
+import React from "react"
+import "../styles/formInput.css"
 
-export const FormSelect = (props) => {
+const FormSelect = React.forwardRef((props, ref) => {
     const [focus, setFocus] = React.useState(false)
-    const { name, placeholder, label, errorMessage, options, value, onChange, required } = props
+    const { label, errorMessage, options, ...otherProps } = props
 
     return (
         <div className="formInput">
-            <label>{label}</label>
+            <label htmlFor={props.id}>{label}</label>
             <select
-                name={name}
-                placeholder={placeholder}
-                value={value}
-                onChange={onChange}
-                required={required}
+                ref={ref}
+                {...otherProps}
                 onBlur={() => setFocus(true)}
                 focused={focus.toString()}
             >
@@ -23,7 +20,8 @@ export const FormSelect = (props) => {
                     </option>
                 ))}
             </select>
-            <span className="error">{errorMessage}</span>
         </div>
     )
-}
+})
+
+export default FormSelect
