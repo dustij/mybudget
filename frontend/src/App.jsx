@@ -1,16 +1,21 @@
 import React from "react"
-import CategoryForm from "./components/CategoryForm"
+import CategoryTable from "./components/CategoryTable"
 import { FlashMessageProvider } from "./context/FlashMessageContext"
-import "./styles/App.css"
+import { ModalWindowProvider } from "./context/ModalWindowContext"
 import FlashMessage from "./components/FlashMessage"
+import ModalWindow from "./components/ModalWindow"
+import "./styles/App.css"
 
 const App = () => {
     return (
         <FlashMessageProvider>
-            <div className="app">
-                <FlashMessage />
-                <AppContent />
-            </div>
+            <ModalWindowProvider>
+                <div className="app">
+                    <FlashMessage />
+                    <ModalWindow />
+                    <AppContent />
+                </div>
+            </ModalWindowProvider>
         </FlashMessageProvider>
     )
 }
@@ -18,7 +23,7 @@ const App = () => {
 const AppContent = () => {
     return (
         <div className="appContent">
-            <CategoryForm method={"POST"} />
+            <CategoryTable />
         </div>
     )
 }

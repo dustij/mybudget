@@ -1,37 +1,26 @@
-/* 
-.errorModal {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-    margin: 0 auto;
-    padding: 1rem;
-    position: absolute;
-    top: 20%;
-    width: 50%;
+.categoryFormContent {
+    display: flex;
+    gap: 10px;
 }
 
-.loadingModal {
-    background-color: #fff;
-    border-radius: 10px;
-    box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
-    margin: 0 auto;
-    padding: 1rem;
-    position: absolute;
-    top: 20%;
-    width: 50%;
+.formButtonBar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
 }
 
-.modal {
-    background-color: rgba(0, 0, 0, 0.5);
-    display: none;
-    height: 100%;
-    left: 0;
-    position: fixed;
-    top: 0;
-    width: 100%;
-    z-index: 1;
+.formButtonBar button {
+    margin-left: 10px;
 }
 
-.modal.show {
-    display: block;
-} */
+.formButtonBar .submit {
+    background-color: #0b5876;
+    color: #fff;
+}
+
+.formButtonBar .submit:hover {
+    background-color: #0b5876aa;
+    border: 1px solid transparent;
+}

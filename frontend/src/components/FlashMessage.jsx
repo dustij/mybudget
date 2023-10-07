@@ -4,6 +4,7 @@ import "../styles/FlashMessage.css"
 
 const FlashMessage = () => {
     const { flashMessage, hideMessage } = useFlashMessage()
+    const messageRef = React.useRef(null)
 
     if (!flashMessage) return null
 
@@ -19,7 +20,7 @@ const FlashMessage = () => {
 
     return (
         <div className="flashMessage">
-            <span className={`message ${type}`}>
+            <span className={`message ${type} fadeIn`} ref={messageRef}>
                 {toCapitalizeFirstLetter(message)}
                 <button onClick={handleClose}>×</button>
             </span>

@@ -126,7 +126,7 @@ class Category(models.Model):
     groceries.save()
 
     """
-    name = models.CharField(primary_key=True, max_length=100)
+    name = models.CharField(unique=True, max_length=100)
     amount = models.DecimalField(max_digits=9, decimal_places=2)
     adjusted_amount = models.DecimalField(
         max_digits=9, decimal_places=2, editable=False)
@@ -137,6 +137,7 @@ class Category(models.Model):
         ("Income", "Income"),
         ("Savings", "Savings"),
     ])
+    # TODO may need to put foreign key on rule
     rule = models.OneToOneField(
         Rule,
         on_delete=models.SET_NULL,
@@ -148,6 +149,5 @@ class Category(models.Model):
         return self.name
 
     def save(self, *args, **kwargs) -> None:
-        self.name = self.name.title()
         self.adjusted_amount = self.amount if self.group == "Income" else self.amount * -1
         return super().save(*args, **kwargs)

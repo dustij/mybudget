@@ -1,0 +1,105 @@
+.categoryTable {
+    width: 100%;
+    height: 100%;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    font-family: Arial, Helvetica, sans-serif;
+}
+
+.categoryToolbar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    padding: 10px 10px;
+    border-bottom: 1px solid #ccc;; 
+}
+
+.categoryToolbar .categoryButton {
+    margin-right: 10px;
+}
+
+.categoryToolbar .categoryButton:disabled {
+    border: 1px solid transparent;
+    cursor: default;
+}
+
+.categoryTable .scrollContent {
+    overflow: auto;
+}
+
+.categoryTable table {
+    width: 100%;
+    min-width: max-content;
+    border-collapse: collapse;
+    border-spacing: 0;
+    table-layout: fixed;
+    text-align: left;
+    cursor: default;
+}
+
+.categoryTable thead {
+    box-shadow: 0px 1px 0px 0px #ccc;
+    background-color: #f9f9f9;
+    position: sticky;
+    top: 0;
+    z-index: 1;
+}
+
+.categoryTable tbody tr {
+    border-bottom: 1px solid #dddddd;
+}
+
+.categoryTable table th {
+    padding: 10px 10px;
+    font-size: 14px;
+    color: #333333;
+    font-weight: bold;
+}
+
+.categoryTable table tr td {
+    padding: 2px 10px;
+    font-size: 14px;
+    color: #333333;
+}
+
+.categoryTable tbody tr:hover {
+    background-color: #edfaff;
+    cursor: pointer;
+}
+
+.modalWindowButtonBar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.modalWindowButtonBar button {
+    margin-left: 10px;
+}
+
+.modalWindowButtonBar .delete {
+    background-color: #ff0033;
+    color: #fff;
+}
+
+.modalWindowButtonBar .delete:hover {
+    background-color: #ff0033aa;
+    border: 1px solid transparent;
+}
+
+.categoryTable .selected {
+    background-color: #edfaff;
+    font-weight: bold;
+}
+
+.categoryTable .selected:hover {
+    background-color: #def6ff;
+}
+
+.categoryTable .selected td {
+    color: #0b5876;
+}
