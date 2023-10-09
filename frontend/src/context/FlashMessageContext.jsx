@@ -4,6 +4,7 @@ export const FlashMessageContext = React.createContext()
 
 export const FlashMessageProvider = ({ children }) => {
     const [flashMessage, setFlashMessage] = React.useState(null)
+    const [prepHide, setPrepHide] = React.useState(false)
 
     React.useEffect(() => {
         if (flashMessage) {
@@ -18,11 +19,15 @@ export const FlashMessageProvider = ({ children }) => {
     }
 
     const hideMessage = () => {
-        setFlashMessage(null)
+        setPrepHide(true)
+        setTimeout(() => {
+            setFlashMessage(null)
+            setPrepHide(false)
+        }, 500)
     }
 
     return (
-        <FlashMessageContext.Provider value={{ flashMessage, showMessage, hideMessage }}>
+        <FlashMessageContext.Provider value={{ flashMessage, showMessage, hideMessage, prepHide }}>
             {children}
         </FlashMessageContext.Provider>
     )

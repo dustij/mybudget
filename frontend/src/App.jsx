@@ -1,16 +1,18 @@
 import React from "react"
-import CategoryTable from "./components/CategoryTable"
 import { FlashMessageProvider } from "./context/FlashMessageContext"
 import { ModalWindowProvider } from "./context/ModalWindowContext"
 import FlashMessage from "./components/FlashMessage"
 import ModalWindow from "./components/ModalWindow"
+import TabLayout from "./components/TabLayout"
+import CategoryTable from "./components/CategoryTable"
+import { BudgetTable } from "./components/BudgetTable"
 import "./styles/App.css"
 
 const App = () => {
     return (
         <FlashMessageProvider>
             <ModalWindowProvider>
-                <div className="app">
+                <div className="app" tabIndex={0} role="application">
                     <FlashMessage />
                     <ModalWindow />
                     <AppContent />
@@ -23,7 +25,10 @@ const App = () => {
 const AppContent = () => {
     return (
         <div className="appContent">
-            <CategoryTable />
+            <TabLayout tabLabels={["Budget", "Categories"]}>
+                <CategoryTable label={"Categories"} />
+                <BudgetTable label={"Budget"} />
+            </TabLayout>
         </div>
     )
 }

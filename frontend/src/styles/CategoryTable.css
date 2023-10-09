@@ -65,39 +65,17 @@
 }
 
 .categoryTable tbody tr:hover {
-    background-color: #edfaff;
+    background-color: #def6ff9e;
     cursor: pointer;
 }
 
-.modalWindowButtonBar {
-    display: flex;
-    flex-direction: row;
-    justify-content: flex-end;
-    align-items: center;
-    margin-top: 10px;
-}
-
-.modalWindowButtonBar button {
-    margin-left: 10px;
-}
-
-.modalWindowButtonBar .delete {
-    background-color: #ff0033;
-    color: #fff;
-}
-
-.modalWindowButtonBar .delete:hover {
-    background-color: #ff0033aa;
-    border: 1px solid transparent;
-}
-
 .categoryTable .selected {
-    background-color: #edfaff;
+    background-color: #def6ff;
     font-weight: bold;
 }
 
 .categoryTable .selected:hover {
-    background-color: #def6ff;
+    background-color: #def6ff9e;
 }
 
 .categoryTable .selected td {

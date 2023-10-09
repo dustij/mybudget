@@ -38,3 +38,26 @@
     font-size: 1.2rem;
     font-weight: 500;
 }
+
+.modalWindowButtonBar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.modalWindowButtonBar button {
+    margin-left: 10px;
+}
+
+.modalWindowButtonBar .delete {
+    background-color: #ff0033;
+    color: #fff;
+}
+
+.modalWindowButtonBar .delete:hover {
+    background-color: #ff0033aa;
+    color: #fff;
+    border: 1px solid transparent;
+}

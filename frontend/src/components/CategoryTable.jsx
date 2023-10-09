@@ -5,18 +5,19 @@ import { useModalWindow } from "../hooks/useModalWindow"
 import { formatCurrency } from "../modules/currencyUtils"
 import "../styles/CategoryTable.css"
 
-const CategoryTable = () => {
+const CategoryTable = ({ props }) => {
     const { showMessage } = useFlashMessage()
     const { showModalWindow, hideModalWindow } = useModalWindow()
     const [categories, setCategories] = React.useState([])
     const [selectedCategories, setSelectedCategories] = React.useState([])
+    const [selectedRows, setSelectedRows] = React.useState([])
     const [dataChanged, setDataChanged] = React.useState(true)
+    const rowRefs = React.useRef([])
 
     React.useEffect(() => {
         if (!dataChanged) {
             return
         }
-
         fetch("http://localhost:8000/api/category")
             .then(response => response.json())
             .then(data => {
@@ -24,7 +25,7 @@ const CategoryTable = () => {
                     if (category.rule) {
                         return {
                             ...category,
-                            ...category.rule
+                            rule: { ...category.rule }
                         }
                     } else {
                         return category
@@ -38,32 +39,16 @@ const CategoryTable = () => {
 
     }, [dataChanged])
 
+    React.useEffect(() => {
+        setSelectedCategories(
+            rowRefs.current.filter((row, index) => selectedRows.includes(index))
+                .map(row => categories.find(category => category.name === row.firstChild.innerText))
+        )
+    }, [selectedRows])
+
     const clearSelection = () => {
-        const rows = document.querySelectorAll(".categoryTable tbody tr")
-        rows.forEach(row => {
-            row.classList.remove("selected")
-        })
+        setSelectedRows([])
         setSelectedCategories([])
-    }
-
-    const handleRowClick = (e) => {
-        const row = e.target.parentElement
-
-        if (row.classList.contains("selected")) {
-            row.classList.remove("selected")
-        } else {
-            row.classList.add("selected")
-        }
-
-        const name = row.firstChild.innerText
-        const category = categories.find(category => category.name === name)
-        console.log(category)
-
-        if (selectedCategories.includes(category)) {
-            setSelectedCategories(selectedCategories.filter(c => c !== category))
-        } else {
-            setSelectedCategories([...selectedCategories, category])
-        }
     }
 
     const handleAddClick = () => {
@@ -109,51 +94,28 @@ const CategoryTable = () => {
 
     const handleDeleteClick = () => {
         const handleConfirmDelete = () => {
-            selectedCategories.forEach(category => {
-                console.log(category)
-                fetch(`http://localhost:8000/api/category/${category.id}`, {
-                    method: "DELETE"
-                })
-                    .then(response => {
-                        if (response.status === 204) {
-                            return {
-                                success: true
-                            }
-                        } else if (response.status === 404) {
-                            return {
-                                success: false,
-                                message: "Category not found."
-                            }
-                        } else {
-                            return response.json()
-                        }
+            selectedCategories.forEach(async category => {
+                try {
+                    const response = await fetch(`http://localhost:8000/api/category/${category.id}`, {
+                        method: "DELETE"
                     })
-                    .then(data => {
-                        if (data.success) {
-                            setCategories(categories.filter(c => c !== category))
-                            setSelectedCategories([])
-                            setDataChanged(true)
-                            hideModalWindow()
-                            showMessage("Category(s) deleted successfully.", "success")
-
-                        } else {
-                            throw new Error(data.message)
-                        }
-                    })
-                    .catch(error => {
-                        showModalWindow({
-                            title: "Error",
-                            content: (
-                                <div>
-                                    <p>An error occurred while deleting the selected category(s).</p>
-                                    <p>{error.message}</p>
-                                    <div className="modalWindowButtonBar">
-                                        <button className="modalWindowButton" onClick={hideModalWindow}>OK</button>
-                                    </div>
-                                </div>
-                            )
-                        })
-                    })
+                    if (response.status === 204) {
+                        setCategories(categories.filter(c => c !== category))
+                        setSelectedCategories([])
+                        setSelectedRows([])
+                        setDataChanged(true)
+                        hideModalWindow()
+                        showMessage("Category(s) deleted successfully.", "success")
+                    } else if (response.status === 404) {
+                        throw new Error("Category not found.")
+                    } else {
+                        const data = await response.json()
+                        throw new Error(data.message)
+                    }
+                }
+                catch (error) {
+                    showMessage(`An error occurred while deleting the selected category(s). ${error.message}`, "error")
+                }
             })
         }
 
@@ -170,6 +132,35 @@ const CategoryTable = () => {
                 </div>
             )
         })
+    }
+
+    function handleMouseDown(event, index) {
+        if (event.button !== 0) return // Only handle left mouse button
+
+        if (event.shiftKey) {
+            event.preventDefault()
+            // Select range of rows
+            const firstIndex = selectedRows.length ? selectedRows[0] : index
+            const range = Array(Math.abs(index - firstIndex) + 1)
+                .fill()
+                .map((_, i) => Math.min(index, firstIndex) + i)
+            setSelectedRows(range)
+        } else if (event.ctrlKey || event.metaKey) {
+            // Toggle individual row
+            setSelectedRows((prevSelectedRows) =>
+                prevSelectedRows.includes(index)
+                    ? prevSelectedRows.filter((i) => i !== index)
+                    : [...prevSelectedRows, index]
+            )
+        } else {
+            // Select individual row
+            if (selectedRows.length === 1 && selectedRows[0] === index) {
+                // Clear selection if row is already selected
+                clearSelection()
+            } else {
+                setSelectedRows([index])
+            }
+        }
     }
 
     return (
@@ -195,17 +186,22 @@ const CategoryTable = () => {
                         </tr>
                     </thead>
                     <tbody>
-                        {categories.map(category => (
-                            <tr key={category.id} onClick={handleRowClick}>
+                        {categories.map((category, index) => (
+                            <tr
+                                key={category.id}
+                                className={selectedRows.includes(index) ? "selected" : ""}
+                                onMouseDown={(event) => handleMouseDown(event, index)}
+                                ref={rowRef => rowRefs.current[index] = rowRef}
+                            >
                                 <td>{category.name}</td>
                                 <td className="numberColumn">{formatCurrency(category.amount)}</td>
                                 <td>{category.group}</td>
                                 <td>{category.repeat}</td>
-                                <td>{category.start_date}</td>
-                                <td>{category.frequency}</td>
-                                <td>{category.weekday}</td>
-                                <td className="numberColumn">{category.day_of_month}</td>
-                                <td className="numberColumn">{category.month_of_year}</td>
+                                <td>{category.rule && category.rule.start_date}</td>
+                                <td>{category.rule && category.rule.frequency}</td>
+                                <td>{category.rule && category.rule.weekday}</td>
+                                <td className="numberColumn">{category.rule && category.rule.day_of_month}</td>
+                                <td className="numberColumn">{category.rule && category.rule.month_of_year}</td>
                             </tr>
                         ))}
                     </tbody>

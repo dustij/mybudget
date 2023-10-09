@@ -22,5 +22,6 @@
 
 .formButtonBar .submit:hover {
     background-color: #0b5876aa;
+    color: #fff;
     border: 1px solid transparent;
 }

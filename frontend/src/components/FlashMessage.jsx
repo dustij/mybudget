@@ -3,10 +3,14 @@ import { useFlashMessage } from "../hooks/useFlashMessage"
 import "../styles/FlashMessage.css"
 
 const FlashMessage = () => {
-    const { flashMessage, hideMessage } = useFlashMessage()
+    const { flashMessage, hideMessage, prepHide } = useFlashMessage()
     const messageRef = React.useRef(null)
 
     if (!flashMessage) return null
+
+    if (prepHide) {
+        messageRef.current.classList.add("fadeOut")
+    }
 
     const { message, type } = flashMessage
 

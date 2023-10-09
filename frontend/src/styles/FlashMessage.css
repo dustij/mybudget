@@ -1,6 +1,6 @@
 .flashMessage {
   position: fixed;
-  top: 0;
+  bottom: 0;
   left: 0;
   width: 100%;
   z-index: 1000;
@@ -63,7 +63,7 @@
 @keyframes fadeIn {
   0% {
     opacity: 0;
-    transform: translateY(-100%);
+    transform: translateY(100%);
   }
 
   100% {
@@ -80,6 +80,6 @@
 
   100% {
     opacity: 0;
-    transform: translateY(-100%);  
+    transform: translateY(100%);  
   }
 }

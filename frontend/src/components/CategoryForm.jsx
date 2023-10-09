@@ -155,7 +155,6 @@ const CategoryForm = (props) => {
                     return res.json()
                 } else {
                     return res.json().then(err => {
-                        console.log(err)
 
                         const errString = Object.keys(err).map(key => {
                             return `${err[key]}`

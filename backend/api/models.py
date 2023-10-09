@@ -137,7 +137,6 @@ class Category(models.Model):
         ("Income", "Income"),
         ("Savings", "Savings"),
     ])
-    # TODO may need to put foreign key on rule
     rule = models.OneToOneField(
         Rule,
         on_delete=models.SET_NULL,
