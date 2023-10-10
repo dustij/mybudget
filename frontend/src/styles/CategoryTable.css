@@ -66,6 +66,10 @@
     cursor: pointer;
 }
 
+.category-table tbody tr:hover td {
+    color: #0b5876;
+}
+
 .category-table .selected {
     background-color: #def6ff;
     font-weight: bold;

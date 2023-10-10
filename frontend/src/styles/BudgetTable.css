@@ -76,6 +76,10 @@
     cursor: pointer;
 }
 
+.budget-table tbody tr:hover td {
+    color: #0b5876;
+}
+
 .budget-table .selected {
     background-color: #def6ff;
     font-weight: bold;
