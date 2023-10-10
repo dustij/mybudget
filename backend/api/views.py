@@ -64,6 +64,7 @@ class CategoryViewset(viewsets.ModelViewSet):
 
 class BudgetView(views.APIView):
     def get(self, request, *args, **kwargs):
+        
         start_date = request.query_params.get("start_date", None)
         end_date = request.query_params.get("end_date", None)
 
@@ -107,7 +108,7 @@ class BudgetView(views.APIView):
             "Savings": savings_categories,
         }
 
-        # get all occurrences for each category
+        # get all occurrences for each category between start_date and end_date
         all_occurrences = pd.Series([])
         individual_occurrences = {}
 
@@ -124,51 +125,92 @@ class BudgetView(views.APIView):
 
         all_occurrences = all_occurrences.drop_duplicates().sort_values()
 
-        # create dataframe
-        data = {
-            "date": all_occurrences,
-            "categories": all_occurrences.map(
-                lambda date: [
-                    category.name
+        # get prior occurrences for each category between earliest_start_date and start_date
+        earliest_start_date = pd.to_datetime(
+            Rule.objects.earliest("start_date").start_date)
+
+        prior_occurrences = pd.Series([])
+        prior_individual_occurrences = {}
+
+        for category in all_categories:
+            if rule := Rule.objects.get(category=category):
+                rule_occurrences = rule.get_occurrences(
+                    earliest_start_date, start_date)
+                category_occurrences = pd.Series(
+                    [occurrence.date()
+                     for occurrence in rule_occurrences]
+                )
+                prior_occurrences = pd.concat(
+                    [prior_occurrences, category_occurrences])
+                prior_individual_occurrences[category.name] = rule_occurrences
+
+        prior_occurrences = prior_occurrences.drop_duplicates().sort_values()
+
+        # get prior balance (sum total of all prior occurrences)
+        prior_balance = prior_occurrences.map(
+            lambda date: sum(
+                [
+                    category.adjusted_amount
                     for category in all_categories
                     if date in [
                         date.date()
-                        for date in individual_occurrences[category.name]
+                        for date in prior_individual_occurrences[category.name]
                     ]
                 ]
-            ),
-            "group_totals": all_occurrences.map(
-                lambda date: {
-                    category.group: sum(
-                        [
-                            category.adjusted_amount
-                            for category in category_dict[category.group]
-                            if date in [
-                                date.date()
-                                for date in individual_occurrences[category.name]
-                            ]
-                        ]
-                    )
-                    for category in all_categories
-                }
-            ),
-            "row_total": all_occurrences.map(
-                lambda date: sum(
+            )
+        ).sum()
+
+        # create dataframe with columns for date, categories, group_totals, row_total, and balance
+        categories_data = all_occurrences.map(
+            lambda date: [
+                category.name
+                for category in all_categories
+                if date in [
+                    date.date()
+                    for date in individual_occurrences[category.name]
+                ]
+            ]
+        )
+
+        group_totals_data = all_occurrences.map(
+            lambda date: {
+                category.group: sum(
                     [
                         category.adjusted_amount
-                        for category in all_categories
+                        for category in category_dict[category.group]
                         if date in [
                             date.date()
                             for date in individual_occurrences[category.name]
                         ]
                     ]
                 )
-            ),
+                for category in all_categories
+            }
+        )
+
+        row_total_data = all_occurrences.map(
+            lambda date: sum(
+                [
+                    category.adjusted_amount
+                    for category in all_categories
+                    if date in [
+                        date.date()
+                        for date in individual_occurrences[category.name]
+                    ]
+                ]
+            )
+        )
+
+        data = {
+            "date": all_occurrences,
+            "categories": categories_data,
+            "group_totals": group_totals_data,
+            "row_total": row_total_data,
+            "balance": prior_balance + row_total_data.cumsum(),
         }
 
         df = pd.DataFrame(data)
-
-        print(df)
+        df.index = range(0, len(df))
 
         serializer = BudgetSerializer(df)
 

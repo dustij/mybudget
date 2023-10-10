@@ -7,6 +7,7 @@ export const BudgetTable = ({ props }) => {
     const [startDate, setStartDate] = React.useState(dateUtils.formatDate(new Date()))
     const [endDate, setEndDate] = React.useState(dateUtils.formatDate(dateUtils.getNext30Days()[30]))
     const [dataChanged, setDataChanged] = React.useState(true)
+    const [selectedRow, setSelectedRow] = React.useState(null)
 
     React.useEffect(() => {}, [dataChanged, startDate, endDate])
 
@@ -42,6 +43,19 @@ export const BudgetTable = ({ props }) => {
         setEndDate(dateUtils.formatDate(dateUtils.getNext365Days()[365]))
     }
 
+    const handleRowClick = (event, index) => {
+        if (index === selectedRow) {
+            setSelectedRow(null)
+            return
+        }
+        
+        setSelectedRow(index)
+    }
+
+    const toCurrency = (value) => {
+        return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+    }
+
     return (
         <div className="budget-table">
             <div className="budget-toolbar">
@@ -75,20 +89,22 @@ export const BudgetTable = ({ props }) => {
                             <th className="number-column">Discretionary</th>
                             <th className="number-column">Income</th>
                             <th className="number-column">Savings</th>
+                            <th className="number-column">Total</th>
                             <th className="number-column">Balance</th>
                         </tr>
                     </thead>
                     <tbody>
-                        {dateUtils.getDatesBetween(startDate, endDate).map(date => (
-                            <tr key={date}>
+                        {dateUtils.getDatesBetween(startDate, endDate).map((date, index) => (
+                            <tr key={index} className={selectedRow === index ? "selected" : ""} onClick={event => handleRowClick(event, index)}>
                                 <td>{dateUtils.getWeekday(date)}</td>
                                 <td>{dateUtils.formatDate(date)}</td>
-                                <td className="number-column"></td>
-                                <td className="number-column"></td>
-                                <td className="number-column"></td>
-                                <td className="number-column"></td>
-                                <td className="number-column"></td>
-                                <td className="number-column"></td>
+                                <td className="number-column">{toCurrency(0)}</td>
+                                <td className="number-column">{toCurrency(0)}</td>
+                                <td className="number-column">{toCurrency(0)}</td>
+                                <td className="number-column">{toCurrency(0)}</td>
+                                <td className="number-column">{toCurrency(0)}</td>
+                                <td className="number-column">{toCurrency(0)}</td>
+                                <td className="number-column">{toCurrency(0)}</td>
                             </tr>
                         ))}
                     </tbody>
