@@ -1,4 +1,4 @@
-.modalWindow {
+.modal-window {
     position: fixed;
     z-index: 1;
     left: 0;
@@ -9,7 +9,7 @@
     background-color: rgba(0, 0, 0, 0.4);
 }
 
-.modalWindowContent {
+.modal-window-content {
     position: relative;
     background-color: #fefefe;
     top: 50%;
@@ -23,14 +23,14 @@
     max-height: 85%;
 }
 
-.modalWindowTitle {
+.modal-window-title {
     display: flex;
     justify-content: space-between;
     align-items: center;
     margin-bottom: 10px;
 }
 
-.modalWindowTitle button {
+.modal-window-title button {
     background-color: transparent;
     border: none;
     outline: none;
@@ -39,7 +39,7 @@
     font-weight: 500;
 }
 
-.modalWindowButtonBar {
+.modal-window-button-bar {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -47,16 +47,16 @@
     margin-top: 10px;
 }
 
-.modalWindowButtonBar button {
+.modal-window-button-bar button {
     margin-left: 10px;
 }
 
-.modalWindowButtonBar .delete {
+.modal-window-button-bar .delete {
     background-color: #ff0033;
     color: #fff;
 }
 
-.modalWindowButtonBar .delete:hover {
+.modal-window-button-bar .delete:hover {
     background-color: #ff0033aa;
     color: #fff;
     border: 1px solid transparent;

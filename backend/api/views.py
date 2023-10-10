@@ -5,8 +5,10 @@ from rest_framework.status import *
 
 from django.core.exceptions import ValidationError
 
+import pandas as pd
+
 from .models import Rule, Category
-from .serializers import RuleSerializer, CategorySerializer
+from .serializers import RuleSerializer, CategorySerializer, BudgetSerializer
 from .filters import RuleFilter, CategoryFilter
 
 
@@ -59,3 +61,115 @@ class CategoryViewset(viewsets.ModelViewSet):
 
         return Response(data, HTTP_200_OK)
 
+
+class BudgetView(views.APIView):
+    def get(self, request, *args, **kwargs):
+        start_date = request.query_params.get("start_date", None)
+        end_date = request.query_params.get("end_date", None)
+
+        # validate start_date and end_date
+        if start_date is None or end_date is None:
+            return Response(
+                {"error": "start_date and end_date are required"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            start_date = pd.to_datetime(start_date)
+            end_date = pd.to_datetime(end_date)
+        except ValueError:
+            return Response(
+                {"error": "start_date and end_date must be in YYYY-MM-DD format"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        if start_date > end_date:
+            return Response(
+                {"error": "start_date must be before end_date"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        # get categories
+        all_categories = Category.objects.all()
+        fixed_categories = Category.objects.filter(group="Fixed")
+        variable_categories = Category.objects.filter(group="Variable")
+        discretionary_categories = Category.objects.filter(
+            group="Discretionary")
+        income_categories = Category.objects.filter(group="Income")
+        savings_categories = Category.objects.filter(group="Savings")
+
+        category_dict = {
+            "all": all_categories,
+            "Fixed": fixed_categories,
+            "Variable": variable_categories,
+            "Discretionary": discretionary_categories,
+            "Income": income_categories,
+            "Savings": savings_categories,
+        }
+
+        # get all occurrences for each category
+        all_occurrences = pd.Series([])
+        individual_occurrences = {}
+
+        for category in all_categories:
+            if rule := Rule.objects.get(category=category):
+                rule_occurrences = rule.get_occurrences(start_date, end_date)
+                category_occurrences = pd.Series(
+                    [occurrence.date()
+                     for occurrence in rule_occurrences]
+                )
+                all_occurrences = pd.concat(
+                    [all_occurrences, category_occurrences])
+                individual_occurrences[category.name] = rule_occurrences
+
+        all_occurrences = all_occurrences.drop_duplicates().sort_values()
+
+        # create dataframe
+        data = {
+            "date": all_occurrences,
+            "categories": all_occurrences.map(
+                lambda date: [
+                    category.name
+                    for category in all_categories
+                    if date in [
+                        date.date()
+                        for date in individual_occurrences[category.name]
+                    ]
+                ]
+            ),
+            "group_totals": all_occurrences.map(
+                lambda date: {
+                    category.group: sum(
+                        [
+                            category.adjusted_amount
+                            for category in category_dict[category.group]
+                            if date in [
+                                date.date()
+                                for date in individual_occurrences[category.name]
+                            ]
+                        ]
+                    )
+                    for category in all_categories
+                }
+            ),
+            "row_total": all_occurrences.map(
+                lambda date: sum(
+                    [
+                        category.adjusted_amount
+                        for category in all_categories
+                        if date in [
+                            date.date()
+                            for date in individual_occurrences[category.name]
+                        ]
+                    ]
+                )
+            ),
+        }
+
+        df = pd.DataFrame(data)
+
+        print(df)
+
+        serializer = BudgetSerializer(df)
+
+        return Response(serializer.data, HTTP_200_OK)

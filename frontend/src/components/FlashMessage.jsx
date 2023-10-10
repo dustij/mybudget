@@ -9,7 +9,7 @@ const FlashMessage = () => {
     if (!flashMessage) return null
 
     if (prepHide) {
-        messageRef.current.classList.add("fadeOut")
+        messageRef.current.classList.add("fade-out")
     }
 
     const { message, type } = flashMessage
@@ -23,10 +23,10 @@ const FlashMessage = () => {
     }
 
     return (
-        <div className="flashMessage">
-            <span className={`message ${type} fadeIn`} ref={messageRef}>
+        <div className="flash-message">
+            <span className={`message ${type} fade-in`} ref={messageRef}>
                 {toCapitalizeFirstLetter(message)}
-                <button onClick={handleClose}>×</button>
+                <button className="close-button" onClick={handleClose}>×</button>
             </span>
         </div>
     )

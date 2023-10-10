@@ -12,13 +12,13 @@ const ModalWindow = () => {
     const { title, content } = modalWindow
 
     return (
-        <div className="modalWindow">
-            <div className="modalWindowContent">
-                <div className="modalWindowTitle">
+        <div className="modal-window">
+            <div className="modal-window-content">
+                <div className="modal-window-title">
                     <h3>{title}</h3>
                     <button onClick={hideModalWindow}>×</button>
                 </div>
-                <div className="modalWindowBody">
+                <div className="modal-window-body">
                     {content}
                 </div>
             </div>

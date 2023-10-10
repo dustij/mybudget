@@ -11,6 +11,8 @@ bleach = "*"
 django-filter = "*"
 django-cors-headers = "*"
 python-dateutil = "*"
+pandas = "*"
+numpy = "*"
 
 [dev-packages]
 

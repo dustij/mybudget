@@ -257,9 +257,9 @@ const CategoryForm = (props) => {
     }
 
     return (
-        <form className="categoryForm" onSubmit={handleSubmit}>
-            <div className="categoryFormContent">
-                <div className="primaryForm">
+        <form className="category-form" onSubmit={handleSubmit}>
+            <div className="category-form-content">
+                <div className="primar-form">
                     <FormInput
                         id="name"
                         name="name"
@@ -367,7 +367,7 @@ const CategoryForm = (props) => {
                 }
             </div>
 
-            <div className="formButtonBar">
+            <div className="form-button-bar">
                 <button className="submit" type="submit">Submit</button>
                 <button type="button" onClick={props.onClick}>Cancel</button>
             </div>

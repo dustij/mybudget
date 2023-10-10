@@ -1,4 +1,4 @@
-.flashMessage {
+.flash-message {
   position: fixed;
   bottom: 0;
   left: 0;
@@ -6,7 +6,7 @@
   z-index: 1000;
 }
 
-.flashMessage button {
+.flash-message button {
   position: absolute;
   top: 0;
   right: 0;
@@ -20,7 +20,11 @@
   cursor: pointer;
 }
 
-.flashMessage .message {
+.flash-message .close-button:hover {
+  color: #ffffffbb;
+}
+
+.flash-message .message {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -32,32 +36,32 @@
   box-shadow: 0 0 10px rgba(0, 0, 0, 0.25);
 }
 
-.fadeIn {
+.fade-in {
   animation-name: fadeIn;
   animation-duration: .5s;
   animation-fill-mode: forwards;
 }
 
-.fadeOut {
+.fade-out {
   animation-name: fadeOut;
   animation-duration: .5s;
   animation-fill-mode: forwards;
 }
 
-.flashMessage .message.success {
+.flash-message .message.success {
   background-color: #23d160;
 }
 
-.flashMessage .message.error {
+.flash-message .message.error {
   background-color: #ff0033;
 }
 
-.flashMessage .message.warning {
+.flash-message .message.warning {
   background-color: #ffdd57;
 }
 
-.flashMessage .message.info {
-  background-color: #00d1b2;
+.flash-message .message.info {
+  background-color: #209cee;
 }
 
 @keyframes fadeIn {

@@ -125,9 +125,9 @@ const CategoryTable = ({ props }) => {
                 <div>
                     <p>Are you sure you want to delete the selected category(s)?</p>
                     <p>This action cannot be undone.</p>
-                    <div className="modalWindowButtonBar">
-                        <button className="modalWindowButton delete" onClick={handleConfirmDelete}>Delete</button>
-                        <button className="modalWindowButton" onClick={hideModalWindow} >Cancel</button>
+                    <div className="modal-window-button-bar">
+                        <button className="modal-window-button delete" onClick={handleConfirmDelete}>Delete</button>
+                        <button className="modal-window-button" onClick={hideModalWindow} >Cancel</button>
                     </div>
                 </div>
             )
@@ -164,25 +164,25 @@ const CategoryTable = ({ props }) => {
     }
 
     return (
-        <div className="categoryTable">
-            <div className="categoryToolbar">
-                <button className="categoryButton" onClick={handleAddClick}>Add</button>
-                <button className="categoryButton" disabled={selectedCategories.length !== 1} onClick={handleEditClick}>Edit</button>
-                <button className="categoryButton" disabled={selectedCategories.length === 0} onClick={handleDeleteClick}>Delete</button>
+        <div className="category-table">
+            <div className="category-toolbar">
+                <button className="toolbar-button" onClick={handleAddClick}>Add</button>
+                <button className="toolbar-button" disabled={selectedCategories.length !== 1} onClick={handleEditClick}>Edit</button>
+                <button className="toolbar-button" disabled={selectedCategories.length === 0} onClick={handleDeleteClick}>Delete</button>
             </div>
-            <div className="scrollContent">
+            <div className="scroll-content">
                 <table>
                     <thead>
                         <tr>
                             <th>Name</th>
-                            <th className="numberColumn">Amount</th>
+                            <th className="number-column">Amount</th>
                             <th>Group</th>
                             <th>Repeat</th>
                             <th>Start Date</th>
                             <th>Frequency</th>
                             <th>Weekday</th>
-                            <th className="numberColumn">Day of Month</th>
-                            <th className="numberColumn">Month of Year</th>
+                            <th className="number-column">Day of Month</th>
+                            <th className="number-column">Month of Year</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -194,14 +194,14 @@ const CategoryTable = ({ props }) => {
                                 ref={rowRef => rowRefs.current[index] = rowRef}
                             >
                                 <td>{category.name}</td>
-                                <td className="numberColumn">{formatCurrency(category.amount)}</td>
+                                <td className="number-column">{formatCurrency(category.amount)}</td>
                                 <td>{category.group}</td>
                                 <td>{category.repeat}</td>
                                 <td>{category.rule && category.rule.start_date}</td>
                                 <td>{category.rule && category.rule.frequency}</td>
                                 <td>{category.rule && category.rule.weekday}</td>
-                                <td className="numberColumn">{category.rule && category.rule.day_of_month}</td>
-                                <td className="numberColumn">{category.rule && category.rule.month_of_year}</td>
+                                <td className="number-column">{category.rule && category.rule.day_of_month}</td>
+                                <td className="number-column">{category.rule && category.rule.month_of_year}</td>
                             </tr>
                         ))}
                     </tbody>

@@ -24,7 +24,7 @@ const App = () => {
 
 const AppContent = () => {
     return (
-        <div className="appContent">
+        <div className="app-content">
             <TabLayout tabLabels={["Budget", "Categories"]}>
                 <CategoryTable label={"Categories"} />
                 <BudgetTable label={"Budget"} />

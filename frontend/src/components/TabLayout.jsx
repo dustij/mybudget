@@ -5,13 +5,13 @@ const TabLayout = ({ tabLabels, children }) => {
     const [activeTab, setActiveTab] = React.useState(tabLabels[0])
 
     return (
-        <div className="tabLayout">
-            <div className="tabLayoutButtonBar">
+        <div className="tab-layout">
+            <div className="tab-layout-button-bar">
                 {tabLabels.map((label) => {
                     return (
                         <button
                             key={label}
-                            className={`tabLayoutButton ${label === activeTab ? "active" : ""}`}
+                            className={`tab-layout-button ${label === activeTab ? "active" : ""}`}
                             onClick={() => setActiveTab(label)}
                         >
                             {label}
@@ -20,7 +20,7 @@ const TabLayout = ({ tabLabels, children }) => {
                 }
                 )}
             </div>
-            <div className="tabLayoutContent">
+            <div className="tab-layout-content">
                 {React.Children.map(children, (child) => {
                     if (child.props.label === activeTab) {
                         return child

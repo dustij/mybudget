@@ -1,9 +1,9 @@
-.categoryFormContent {
+.category-form-content {
     display: flex;
     gap: 10px;
 }
 
-.formButtonBar {
+.form-button-bar {
     display: flex;
     flex-direction: row;
     justify-content: flex-end;
@@ -11,16 +11,16 @@
     margin-top: 10px;
 }
 
-.formButtonBar button {
+.form-button-bar button {
     margin-left: 10px;
 }
 
-.formButtonBar .submit {
+.form-button-bar .submit {
     background-color: #0b5876;
     color: #fff;
 }
 
-.formButtonBar .submit:hover {
+.form-button-bar .submit:hover {
     background-color: #0b5876aa;
     color: #fff;
     border: 1px solid transparent;

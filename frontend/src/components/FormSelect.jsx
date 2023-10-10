@@ -6,7 +6,7 @@ const FormSelect = React.forwardRef((props, ref) => {
     const { label, errorMessage, options, ...otherProps } = props
 
     return (
-        <div className="formInput">
+        <div className="form-input">
             <label htmlFor={props.id}>{label}</label>
             <select
                 ref={ref}

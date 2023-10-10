@@ -29,27 +29,36 @@ class Rule(models.Model):
         MinValueValidator(1), MaxValueValidator(12)])
 
     def __str__(self):
-        return f"{self.frequency}"
+        return f"{self.id} - {self.frequency}"
 
     def get_rrule(self):
         """
         Generates and returns an rrule based on the rule's settings.
         """
         params = {
-            "interval": self.interval,
             "dtstart": self.start_date,
             "until": self.end_date,
+        }
+
+        weekdays = {
+            "Monday": MO,
+            "Tuesday": TU,
+            "Wednesday": WE,
+            "Thursday": TH,
+            "Friday": FR,
+            "Saturday": SA,
+            "Sunday": SU,
         }
 
         if self.frequency == "Daily":
             return rrule(DAILY, **params)
 
         if self.frequency == "Weekly":
-            params["byweekday"] = self.weekday
+            params["byweekday"] = weekdays[self.weekday]
             return rrule(WEEKLY, **params)
 
         if self.frequency == "Biweekly":
-            params["byweekday"] = self.weekday
+            params["byweekday"] = weekdays[self.weekday]
             params["interval"] = 2
             return rrule(WEEKLY, **params)
 
