@@ -159,3 +159,4 @@ class Category(models.Model):
     def save(self, *args, **kwargs) -> None:
         self.adjusted_amount = self.amount if self.group == "Income" else self.amount * -1
         return super().save(*args, **kwargs)
+
