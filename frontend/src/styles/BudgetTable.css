@@ -104,3 +104,42 @@
 .budget-table .selected .balance-negative {
     color: #ff0000;
 }
+
+.details {
+    display: flex;
+    flex-direction: column;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    align-items: center;
+    padding-top: 2px;
+}
+
+.budget-table tbody .details-row:hover {
+    background-color: transparent;
+}
+
+.budget-table tbody .details-row thead {
+    background-color: #f9f9f9;
+    box-shadow: none;
+}
+
+.budget-table tbody .details-row thead tr:hover {
+    background-color: transparent;
+}
+
+.budget-table tbody .details-row tbody tr td {
+    color: #000;
+}
+
+.budget-table tbody .details-row tbody tr:hover td {
+    color: #0b5876;
+}
+
+.budget-table tbody .details-row .details-footer .button-bar {
+    display: flex;
+    flex-direction: row;
+    justify-content: flex-end;
+    align-items: center;
+    padding: 10px;
+    gap: 10px;
+}
