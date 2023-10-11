@@ -25,3 +25,7 @@
     color: #fff;
     border: 1px solid transparent;
 }
+
+.category-form-content .form-input input, select {
+    height: 49.5px;
+}

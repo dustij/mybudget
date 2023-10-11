@@ -9,6 +9,7 @@ export const BudgetTable = ({ props }) => {
     const [data, setData] = React.useState([])
     const [dataChanged, setDataChanged] = React.useState(false)
     const [selectedRow, setSelectedRow] = React.useState(null)
+    const rowRefs = React.useRef([])
 
     React.useEffect(() => {
         fetch(`http://localhost:8000/api/budget?start_date=${startDate}&end_date=${endDate}`)
@@ -55,13 +56,16 @@ export const BudgetTable = ({ props }) => {
         setEndDate(dateUtils.formatDate(dateUtils.getNext365Days()[365]))
     }
 
-    const handleRowClick = (event, index) => {
-        if (index === selectedRow) {
-            setSelectedRow(null)
-            return
+    const handleRowClick = (event) => {
+        if (event.currentTarget === selectedRow) {
+            return setSelectedRow(null)
         }
 
-        setSelectedRow(index)
+        if (selectedRow) {
+            selectedRow.classList.remove("selected")
+        }
+        event.currentTarget.classList.add("selected")
+        setSelectedRow(event.currentTarget)
     }
 
     const toCurrency = (value) => {
@@ -106,49 +110,55 @@ export const BudgetTable = ({ props }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {dateUtils.getDatesBetween(startDate, endDate).map((date, index) => (
-                            <tr key={index} className={selectedRow === index ? "selected" : ""} onClick={event => handleRowClick(event, index)}>
-                                <td>{dateUtils.getWeekday(date)}</td>
-                                <td>{dateUtils.formatDate(date)}</td>
-                                <td className="fixed number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
-                                    ))
-                                }</td>
-                                <td className="variable number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
-                                    ))
-                                }</td>
-                                <td className="discretionary number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
-                                    ))
-                                }</td>
-                                <td className="income number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
-                                    ))
-                                }</td>
-                                <td className="savings number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
-                                    ))
-                                }</td>
-                                <td className="total number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
-                                    ))
-                                }</td>
-                                <td className="balance number-column">{
-                                    toCurrency(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.balance ||
-                                        data.filter(row => row.date < dateUtils.formatDate(date))
-                                            .sort((a, b) => a.date < b.date ? 1 : -1)[0]?.balance || 0
-                                    )
-                                }</td>
-                            </tr>
-                        ))}
+                        {dateUtils.getDatesBetween(startDate, endDate).map((date, index) => {
+                            const balance = data.filter(row => row.date === dateUtils.formatDate(date))[0]?.balance ||
+                                data.filter(row => row.date < dateUtils.formatDate(date))
+                                    .sort((a, b) => a.date < b.date ? 1 : -1)[0]?.balance || 0
+                            return (
+                                <tr
+                                    className={selectedRow === rowRefs.current[index] ? "selected" : ""}
+                                    ref={rowRef => rowRefs.current[index] = rowRef}
+                                    key={date}
+                                    onClick={(event) => handleRowClick(event, index)}
+                                >
+                                    <td>{dateUtils.getWeekday(date)}</td>
+                                    <td>{dateUtils.formatDate(date)}</td>
+                                    <td className="fixed number-column">{
+                                        toCurrency(Math.abs(
+                                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
+                                        ))
+                                    }</td>
+                                    <td className="variable number-column">{
+                                        toCurrency(Math.abs(
+                                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
+                                        ))
+                                    }</td>
+                                    <td className="discretionary number-column">{
+                                        toCurrency(Math.abs(
+                                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
+                                        ))
+                                    }</td>
+                                    <td className="income number-column">{
+                                        toCurrency(Math.abs(
+                                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
+                                        ))
+                                    }</td>
+                                    <td className="savings number-column">{
+                                        toCurrency(Math.abs(
+                                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
+                                        ))
+                                    }</td>
+                                    <td className="total number-column">{
+                                        toCurrency(Math.abs(
+                                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
+                                        ))
+                                    }</td>
+                                    <td className={`number-column ${balance < 0 ? "balance-negative" : "balance"}`}>{
+                                        toCurrency(balance)
+                                    }</td>
+                                </tr>
+                            )
+                        })}
                     </tbody>
                 </table>
             </div>

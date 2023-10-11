@@ -14,8 +14,7 @@
     align-items: center;
     padding: 0px 10px;
     border-bottom: 1px solid #ccc;
-    height: 50px;
-    box-sizing: border-box;
+    min-height: 50px;
 }
 
 .budget-toolbar .form-input {
@@ -92,4 +91,16 @@
 
 .budget-table .selected td {
     color: #0b5876;
+}
+
+.budget-table .balance-negative {
+    color: #ff0000;
+}
+
+.budget-table tbody tr:hover .balance-negative{
+    color: #ff0000;
+}
+
+.budget-table .selected .balance-negative {
+    color: #ff0000;
 }

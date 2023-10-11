@@ -4,11 +4,12 @@
     width: 280px;
 }
 
-input, select {
+.form-input input, select {
     padding: 15px;
     margin: 10px 0px;
     border-radius: 8px;
     border: 1px solid #ccc;
+    box-sizing: border-box;
 }
 
 select {
