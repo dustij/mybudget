@@ -91,7 +91,8 @@ class BudgetView(views.APIView):
             )
 
         # get categories
-        all_categories = Category.objects.all()
+        # all_categories = Category.objects.all()
+        rules_categories = Category.objects.filter(rule__isnull=False)
         fixed_categories = Category.objects.filter(group="Fixed")
         variable_categories = Category.objects.filter(group="Variable")
         discretionary_categories = Category.objects.filter(
@@ -100,7 +101,8 @@ class BudgetView(views.APIView):
         savings_categories = Category.objects.filter(group="Savings")
 
         category_dict = {
-            "all": all_categories,
+            # "all": all_categories,
+            "Rules": rules_categories,
             "Fixed": fixed_categories,
             "Variable": variable_categories,
             "Discretionary": discretionary_categories,
@@ -112,16 +114,16 @@ class BudgetView(views.APIView):
         all_occurrences = pd.Series([])
         individual_occurrences = {}
 
-        for category in all_categories:
-            if rule := Rule.objects.get(category=category):
-                rule_occurrences = rule.get_occurrences(start_date, end_date)
-                category_occurrences = pd.Series(
-                    [occurrence.date()
-                     for occurrence in rule_occurrences]
-                )
-                all_occurrences = pd.concat(
-                    [all_occurrences, category_occurrences])
-                individual_occurrences[category.name] = rule_occurrences
+        for category in rules_categories:
+            rule = Rule.objects.get(category=category)
+            rule_occurrences = rule.get_occurrences(start_date, end_date)
+            category_occurrences = pd.Series(
+                [occurrence.date()
+                    for occurrence in rule_occurrences]
+            )
+            all_occurrences = pd.concat(
+                [all_occurrences, category_occurrences])
+            individual_occurrences[category.name] = rule_occurrences
 
         all_occurrences = all_occurrences.drop_duplicates().sort_values()
 
@@ -132,17 +134,17 @@ class BudgetView(views.APIView):
         prior_occurrences = pd.Series([])
         prior_individual_occurrences = {}
 
-        for category in all_categories:
-            if rule := Rule.objects.get(category=category):
-                rule_occurrences = rule.get_occurrences(
-                    earliest_start_date, start_date)
-                category_occurrences = pd.Series(
-                    [occurrence.date()
-                     for occurrence in rule_occurrences]
-                )
-                prior_occurrences = pd.concat(
-                    [prior_occurrences, category_occurrences])
-                prior_individual_occurrences[category.name] = rule_occurrences
+        for category in rules_categories:
+            rule = Rule.objects.get(category=category)
+            rule_occurrences = rule.get_occurrences(
+                earliest_start_date, start_date)
+            category_occurrences = pd.Series(
+                [occurrence.date()
+                    for occurrence in rule_occurrences]
+            )
+            prior_occurrences = pd.concat(
+                [prior_occurrences, category_occurrences])
+            prior_individual_occurrences[category.name] = rule_occurrences
 
         prior_occurrences = prior_occurrences.drop_duplicates().sort_values()
 
@@ -151,10 +153,10 @@ class BudgetView(views.APIView):
             lambda date: sum(
                 [
                     category.adjusted_amount
-                    for category in all_categories
+                    for category in rules_categories
                     if date in [
                         date.date()
-                        for date in prior_individual_occurrences[category.name]
+                        for date in prior_individual_occurrences.get(category.name, [])
                     ]
                 ]
             )
@@ -164,10 +166,10 @@ class BudgetView(views.APIView):
         categories_data = all_occurrences.map(
             lambda date: [
                 category.name
-                for category in all_categories
+                for category in rules_categories
                 if date in [
                     date.date()
-                    for date in individual_occurrences[category.name]
+                    for date in individual_occurrences.get(category.name, [])
                 ]
             ]
         )
@@ -180,11 +182,11 @@ class BudgetView(views.APIView):
                         for category in category_dict[category.group]
                         if date in [
                             date.date()
-                            for date in individual_occurrences[category.name]
+                            for date in individual_occurrences.get(category.name, [])
                         ]
                     ]
                 )
-                for category in all_categories
+                for category in rules_categories
             }
         )
 
@@ -192,10 +194,10 @@ class BudgetView(views.APIView):
             lambda date: sum(
                 [
                     category.adjusted_amount
-                    for category in all_categories
+                    for category in rules_categories
                     if date in [
                         date.date()
-                        for date in individual_occurrences[category.name]
+                        for date in individual_occurrences.get(category.name, [])
                     ]
                 ]
             )
