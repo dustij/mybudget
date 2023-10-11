@@ -55,19 +55,6 @@ export const BudgetTable = ({ props }) => {
         setEndDate(dateUtils.formatDate(dateUtils.getNext365Days()[365]))
     }
 
-    const handleRowClick = (event, index) => {
-        if (index === selectedRow) {
-            setSelectedRow(null)
-            return
-        }
-
-        setSelectedRow(index)
-    }
-
-    const toCurrency = (value) => {
-        return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
-    }
-
     return (
         <div className="budget-table">
             <div className="budget-toolbar">
@@ -106,53 +93,161 @@ export const BudgetTable = ({ props }) => {
                         </tr>
                     </thead>
                     <tbody>
-                        {dateUtils.getDatesBetween(startDate, endDate).map((date, index) => (
-                            <tr key={index} className={selectedRow === index ? "selected" : ""} onClick={event => handleRowClick(event, index)}>
-                                <td>{dateUtils.getWeekday(date)}</td>
-                                <td>{dateUtils.formatDate(date)}</td>
-                                <td className="fixed number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
-                                    ))
-                                }</td>
-                                <td className="variable number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
-                                    ))
-                                }</td>
-                                <td className="discretionary number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
-                                    ))
-                                }</td>
-                                <td className="income number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
-                                    ))
-                                }</td>
-                                <td className="savings number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
-                                    ))
-                                }</td>
-                                <td className="total number-column">{
-                                    toCurrency(Math.abs(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
-                                    ))
-                                }</td>
-                                <td className="balance number-column">{
-                                    toCurrency(
-                                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.balance ||
-                                        data.filter(row => row.date < dateUtils.formatDate(date))
-                                            .sort((a, b) => a.date < b.date ? 1 : -1)[0]?.balance || 0
-                                    )
-                                }</td>
-                            </tr>
-                        ))}
+                        {dateUtils.getDatesBetween(startDate, endDate).map(date => {
+                            const balance = data.filter(row => row.date === dateUtils.formatDate(date))[0]?.balance ||
+                                data.filter(row => row.date < dateUtils.formatDate(date))
+                                    .sort((a, b) => a.date < b.date ? 1 : -1)[0]?.balance || 0
+                            return (
+                                <Row
+                                    key={date}
+                                    date={date}
+                                    data={data}
+                                    balance={balance}
+                                    selected={selectedRow === dateUtils.formatDate(date)}
+                                    onRowClick={(e) => setSelectedRow(e)}
+                                />)
+                        })}
                     </tbody>
                 </table>
             </div>
         </div>
 
     )
+}
+
+const Row = ({ date, data, balance, selected, onRowClick }) => {
+    const [details, setDetails] = React.useState(null)
+
+    const handleClick = () => {
+        if (selected) {
+            onRowClick(null)
+            setDetails(null)
+        } else {
+            onRowClick(dateUtils.formatDate(date))
+            setDetails(data.filter(row => row.date === dateUtils.formatDate(date))[0])
+        }
+    }
+
+    return (
+        <React.Fragment>
+            <tr className={selected ? "selected" : ""} onClick={handleClick}>
+                <td>{dateUtils.getWeekday(date)}</td>
+                <td>{dateUtils.formatDate(date)}</td>
+                <td className="fixed number-column">{
+                    toCurrency(Math.abs(
+                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
+                    ))
+                }</td>
+                <td className="variable number-column">{
+                    toCurrency(Math.abs(
+                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
+                    ))
+                }</td>
+                <td className="discretionary number-column">{
+                    toCurrency(Math.abs(
+                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
+                    ))
+                }</td>
+                <td className="income number-column">{
+                    toCurrency(Math.abs(
+                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
+                    ))
+                }</td>
+                <td className="savings number-column">{
+                    toCurrency(Math.abs(
+                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
+                    ))
+                }</td>
+                <td className="total number-column">{
+                    toCurrency(Math.abs(
+                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
+                    ))
+                }</td>
+                <td className={`number-column ${balance < 0 ? "balance-negative" : "balance"}`}>{
+                    toCurrency(balance)
+                }</td>
+            </tr>
+            {selected && <tr className="details-row">
+                <td colSpan="9">
+                    <RowDetails details={details} />
+                </td>
+            </tr>}
+        </React.Fragment>
+    )
+}
+
+
+const RowDetails = ({ details }) => {
+    console.log(details)
+    return (
+        <div className="details">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th className="number-column">Fixed</th>
+                        <th className="number-column">Variable</th>
+                        <th className="number-column">Discretionary</th>
+                        <th className="number-column">Income</th>
+                        <th className="number-column">Savings</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {details?.group_totals && Object.keys(details.categories).map(category => {
+                        return (
+                            <tr key={category}>
+                                <td>{details.categories[category]?.name}</td>
+                                <td className="fixed number-column">
+                                    {
+                                        toCurrency(
+                                            details.categories[category]?.group === "Fixed" ? details.categories[category].amount : 0
+                                        )
+                                    }
+                                </td>
+                                <td className="variable number-column">
+                                    {
+                                        toCurrency(
+                                            details.categories[category]?.group === "Variable" ? details.categories[category].amount : 0
+                                        )
+                                    }
+                                </td>
+                                <td className="discretionary number-column">
+                                    {
+                                        toCurrency(
+                                            details.categories[category]?.group === "Discretionary" ? details.categories[category].amount : 0
+                                        )
+                                    }
+                                </td>
+                                <td className="income number-column">
+                                    {
+                                        toCurrency(
+                                            details.categories[category]?.group === "Income" ? details.categories[category].amount : 0
+                                        )
+                                    }
+                                </td>
+                                <td className="savings number-column">
+                                    {
+                                        toCurrency(
+                                            details.categories[category]?.group === "Savings" ? details.categories[category].amount : 0
+                                        )
+                                    }
+                                </td>
+                            </tr>
+                        )
+                    })}
+                </tbody>
+            </table>
+            <div className="details-footer">
+                <div className="button-bar">
+                    <button className="button">Add</button>
+                    <button className="button" disabled={true}>Edit</button>
+                    <button className="button" disabled={true}>Delete</button>
+                </div>
+            </div>
+        </div>
+    )
+}
+
+const toCurrency = (value) => {
+    return value.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
 }

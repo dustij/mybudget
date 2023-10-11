@@ -64,40 +64,44 @@ class CategoryViewset(viewsets.ModelViewSet):
 
 class BudgetView(views.APIView):
     def get(self, request, *args, **kwargs):
-        
-        start_date = request.query_params.get("start_date", None)
         end_date = request.query_params.get("end_date", None)
 
-        # validate start_date and end_date
-        if start_date is None or end_date is None:
+        # validate end_date
+        if end_date is None:
             return Response(
-                {"error": "start_date and end_date are required"},
+                {"error": "end_date is required"},
                 HTTP_400_BAD_REQUEST
             )
 
         try:
-            start_date = pd.to_datetime(start_date)
+            start_date = pd.to_datetime(
+                Rule.objects.earliest("start_date").start_date)
             end_date = pd.to_datetime(end_date)
+
         except ValueError:
             return Response(
-                {"error": "start_date and end_date must be in YYYY-MM-DD format"},
+                {"error": "end_date must be in YYYY-MM-DD format"},
                 HTTP_400_BAD_REQUEST
             )
 
         if start_date > end_date:
             return Response(
-                {"error": "start_date must be before end_date"},
+                {"error": f"end_date must be after {start_date}"},
                 HTTP_400_BAD_REQUEST
             )
 
         # get categories
-        all_categories = Category.objects.all()
-        fixed_categories = Category.objects.filter(group="Fixed")
-        variable_categories = Category.objects.filter(group="Variable")
+        all_categories = Category.objects.filter(rule__isnull=False)
+        fixed_categories = Category.objects.filter(group="Fixed").filter(
+            rule__isnull=False)
+        variable_categories = Category.objects.filter(group="Variable").filter(
+            rule__isnull=False)
         discretionary_categories = Category.objects.filter(
-            group="Discretionary")
-        income_categories = Category.objects.filter(group="Income")
-        savings_categories = Category.objects.filter(group="Savings")
+            group="Discretionary").filter(rule__isnull=False)
+        income_categories = Category.objects.filter(group="Income").filter(
+            rule__isnull=False)
+        savings_categories = Category.objects.filter(group="Savings").filter(
+            rule__isnull=False)
 
         category_dict = {
             "all": all_categories,
@@ -113,52 +117,16 @@ class BudgetView(views.APIView):
         individual_occurrences = {}
 
         for category in all_categories:
-            if rule := Rule.objects.get(category=category):
-                rule_occurrences = rule.get_occurrences(start_date, end_date)
+            if Rule.objects.filter(category=category).exists():
+                rule_occurrences = Rule.objects.get(
+                    category=category).get_occurrences(start_date, end_date)
                 category_occurrences = pd.Series(
-                    [occurrence.date()
-                     for occurrence in rule_occurrences]
-                )
+                    [occurrence.date() for occurrence in rule_occurrences])
                 all_occurrences = pd.concat(
                     [all_occurrences, category_occurrences])
                 individual_occurrences[category.name] = rule_occurrences
 
         all_occurrences = all_occurrences.drop_duplicates().sort_values()
-
-        # get prior occurrences for each category between earliest_start_date and start_date
-        earliest_start_date = pd.to_datetime(
-            Rule.objects.earliest("start_date").start_date)
-
-        prior_occurrences = pd.Series([])
-        prior_individual_occurrences = {}
-
-        for category in all_categories:
-            if rule := Rule.objects.get(category=category):
-                rule_occurrences = rule.get_occurrences(
-                    earliest_start_date, start_date)
-                category_occurrences = pd.Series(
-                    [occurrence.date()
-                     for occurrence in rule_occurrences]
-                )
-                prior_occurrences = pd.concat(
-                    [prior_occurrences, category_occurrences])
-                prior_individual_occurrences[category.name] = rule_occurrences
-
-        prior_occurrences = prior_occurrences.drop_duplicates().sort_values()
-
-        # get prior balance (sum total of all prior occurrences)
-        prior_balance = prior_occurrences.map(
-            lambda date: sum(
-                [
-                    category.adjusted_amount
-                    for category in all_categories
-                    if date in [
-                        date.date()
-                        for date in prior_individual_occurrences[category.name]
-                    ]
-                ]
-            )
-        ).sum()
 
         # create dataframe with columns for date, categories, group_totals, row_total, and balance
         categories_data = all_occurrences.map(
@@ -206,7 +174,7 @@ class BudgetView(views.APIView):
             "categories": categories_data,
             "group_totals": group_totals_data,
             "row_total": row_total_data,
-            "balance": prior_balance + row_total_data.cumsum(),
+            "balance": row_total_data.cumsum(),
         }
 
         df = pd.DataFrame(data)
@@ -215,3 +183,28 @@ class BudgetView(views.APIView):
         serializer = BudgetSerializer(df)
 
         return Response(serializer.data, HTTP_200_OK)
+
+
+class CategoryBatchView(views.APIView):
+    def delete(self, request, *args, **kwargs):
+        categories = request.data
+
+        if categories is None:
+            return Response(
+                {"error": "categories is required"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            categories = [Category.objects.get(id=category["id"])
+                          for category in categories]
+        except Category.DoesNotExist:
+            return Response(
+                {"error": "one or more categories do not exist"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        for category in categories:
+            category.delete()
+
+        return Response({"success": "categories deleted"}, HTTP_200_OK)

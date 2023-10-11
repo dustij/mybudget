@@ -94,29 +94,28 @@ const CategoryTable = ({ props }) => {
 
     const handleDeleteClick = () => {
         const handleConfirmDelete = () => {
-            selectedCategories.forEach(async category => {
-                try {
-                    const response = await fetch(`http://localhost:8000/api/category/${category.id}`, {
-                        method: "DELETE"
-                    })
-                    if (response.status === 204) {
-                        setCategories(categories.filter(c => c !== category))
-                        setSelectedCategories([])
-                        setSelectedRows([])
-                        setDataChanged(true)
-                        hideModalWindow()
-                        showMessage("Category(s) deleted successfully.", "success")
-                    } else if (response.status === 404) {
-                        throw new Error("Category not found.")
-                    } else {
-                        const data = await response.json()
-                        throw new Error(data.message)
-                    }
-                }
-                catch (error) {
-                    showMessage(`An error occurred while deleting the selected category(s). ${error.message}`, "error")
-                }
+            fetch("http://localhost:8000/api/category-batch", {
+                method: "DELETE",
+                headers: {
+                    "Content-Type": "application/json"
+                },
+                body: JSON.stringify(selectedCategories)
             })
+                .then((response) => {
+                    if (!response.ok) {
+                        throw new Error("Network response was not ok")
+                    }
+
+                    showMessage(`Deleted ${selectedCategories.length} category(s).`, "success")
+                    setDataChanged(true)
+                    hideModalWindow()
+                })
+                .catch((error) => {
+                    showMessage(error.message, "error")
+                })
+                .finally(() => {
+                    clearSelection()
+                })
         }
 
         showModalWindow({
