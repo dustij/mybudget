@@ -274,14 +274,6 @@ const CategoryForm = (props) => {
                         onChange={handleChange}
                         ref={nameInputRef} />
 
-                    <FormSelect
-                        id="group"
-                        name="group"
-                        label="Group"
-                        options={["Fixed", "Variable", "Discretionary", "Income", "Savings"]}
-                        value={values.group}
-                        onChange={handleChange} />
-
                     <FormInput
                         id="amount"
                         name="amount"
@@ -292,6 +284,14 @@ const CategoryForm = (props) => {
                         errorMessage="Amount is required"
                         required={true}
                         value={values.amount}
+                        onChange={handleChange} />
+
+                    <FormSelect
+                        id="group"
+                        name="group"
+                        label="Group"
+                        options={["Fixed", "Variable", "Discretionary", "Income", "Savings"]}
+                        value={values.group}
                         onChange={handleChange} />
 
                     <FormSelect

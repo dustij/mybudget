@@ -91,13 +91,17 @@ class BudgetView(views.APIView):
             )
 
         # get categories
-        all_categories = Category.objects.all()
-        fixed_categories = Category.objects.filter(group="Fixed")
-        variable_categories = Category.objects.filter(group="Variable")
+        all_categories = Category.objects.filter(rule__isnull=False)
+        fixed_categories = Category.objects.filter(group="Fixed").filter(
+            rule__isnull=False)
+        variable_categories = Category.objects.filter(group="Variable").filter(
+            rule__isnull=False)
         discretionary_categories = Category.objects.filter(
-            group="Discretionary")
-        income_categories = Category.objects.filter(group="Income")
-        savings_categories = Category.objects.filter(group="Savings")
+            group="Discretionary").filter(rule__isnull=False)
+        income_categories = Category.objects.filter(group="Income").filter(
+            rule__isnull=False)
+        savings_categories = Category.objects.filter(group="Savings").filter(
+            rule__isnull=False)
 
         category_dict = {
             "all": all_categories,
@@ -113,12 +117,11 @@ class BudgetView(views.APIView):
         individual_occurrences = {}
 
         for category in all_categories:
-            if rule := Rule.objects.get(category=category):
-                rule_occurrences = rule.get_occurrences(start_date, end_date)
+            if Rule.objects.filter(category=category).exists():
+                rule_occurrences = Rule.objects.get(
+                    category=category).get_occurrences(start_date, end_date)
                 category_occurrences = pd.Series(
-                    [occurrence.date()
-                     for occurrence in rule_occurrences]
-                )
+                    [occurrence.date() for occurrence in rule_occurrences])
                 all_occurrences = pd.concat(
                     [all_occurrences, category_occurrences])
                 individual_occurrences[category.name] = rule_occurrences
