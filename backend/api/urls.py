@@ -11,4 +11,5 @@ urlpatterns = [
     path("", include(router.urls)),
     path("budget", views.BudgetView.as_view(), name="budget"),
     path("category-batch", views.CategoryBatchView.as_view(), name="category-batch"),
+    path("budget-edit", views.BudgetEditView.as_view(), name="budget-edit"),
 ]

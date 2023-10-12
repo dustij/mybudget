@@ -1,6 +1,6 @@
 from rest_framework import serializers
 
-from .models import Rule, Category
+from .models import Rule, Category, BudgetEdit
 
 
 class RuleSerializer(serializers.ModelSerializer):
@@ -35,3 +35,8 @@ class BudgetSerializer(serializers.Serializer):
             )
 
         return data
+
+class BudgetEditSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BudgetEdit
+        fields = "__all__"

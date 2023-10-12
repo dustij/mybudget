@@ -5,6 +5,32 @@ from dateutil.rrule import rrule, WEEKLY, DAILY, MONTHLY, YEARLY, SU, MO, TU, WE
 
 
 class Rule(models.Model):
+    """
+    This model represents a recurrence rule, which can be used to generate recurring events.
+    It includes fields for the frequency, start date, end date, weekday, day of month, and month of year.
+
+    Fields:
+    - frequency (str): The frequency of the rule, such as "Yearly," "Monthly," "Biweekly," "Weekly," or "Daily."
+    - start_date (Date): The start date of the rule.
+    - end_date (Date): The end date of the rule.
+    - weekday (str): The weekday of the rule, such as "Monday," "Tuesday," "Wednesday," "Thursday," "Friday," "Saturday," or "Sunday."
+    - day_of_month (int): The day of the month of the rule.
+    - month_of_year (int): The month of the year of the rule.
+
+    Example usage:
+
+    # Creating a new recurrence rule
+    my_rule = Rule.objects.create(
+        frequency="Monthly",
+        start_date="2021-01-01",
+        end_date="2021-12-31",
+        day_of_month=15
+    )
+
+    # Generating occurrences for the rule
+    my_rule.get_occurrences("2021-01-01", "2021-12-31")
+
+    """
     frequency = models.CharField(max_length=100, choices=[
         ("Yearly", "Yearly"),
         ("Monthly", "Monthly"),
@@ -28,7 +54,7 @@ class Rule(models.Model):
     month_of_year = models.PositiveIntegerField(null=True, blank=True, validators=[
         MinValueValidator(1), MaxValueValidator(12)])
 
-    def __str__(self):
+    def __str__(self) -> str:
         return f"{self.id} - {self.frequency}"
 
     def get_rrule(self):
@@ -94,7 +120,7 @@ class Rule(models.Model):
                 raise ValidationError(
                     "Yearly frequency should have month_of_year and day_of_month.")
 
-    def get_occurrences(self, start_date, end_date):
+    def get_occurrences(self, start_date, end_date) -> list:
         """
         Returns a list of occurrences between start and end.
         """
@@ -160,3 +186,34 @@ class Category(models.Model):
         self.adjusted_amount = self.amount if self.group == "Income" else self.amount * -1
         return super().save(*args, **kwargs)
 
+
+class BudgetEdit(models.Model):
+    """
+    This model represents a budget edit, which is a change to a budget category's amount.
+    It includes fields for the category, the amount, and the date of the edit.
+
+    Fields:
+    - category (Category): The category that was edited.
+    - amount (Decimal): The new amount for the category.
+    - date (Date): The date of the edit.
+
+    Example usage:
+
+    # Creating a new budget edit
+    BudgetEdit.objects.create(
+        category=groceries,
+        amount=600.00,
+        date="2021-01-01"
+    )
+
+    """
+    category = models.ForeignKey(
+        Category, on_delete=models.CASCADE, related_name="edits")
+    amount = models.DecimalField(max_digits=9, decimal_places=2)
+    date = models.DateField()
+
+    class Meta:
+        unique_together = ["category", "date"]
+
+    def __str__(self) -> str:
+        return f"{self.category.name} - {self.amount} - {self.date}"

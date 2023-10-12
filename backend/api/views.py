@@ -7,8 +7,8 @@ from django.core.exceptions import ValidationError
 
 import pandas as pd
 
-from .models import Rule, Category
-from .serializers import RuleSerializer, CategorySerializer, BudgetSerializer
+from .models import Rule, Category, BudgetEdit
+from .serializers import RuleSerializer, CategorySerializer, BudgetSerializer, BudgetEditSerializer
 from .filters import RuleFilter, CategoryFilter
 
 
@@ -208,3 +208,84 @@ class CategoryBatchView(views.APIView):
             category.delete()
 
         return Response({"success": "categories deleted"}, HTTP_200_OK)
+
+
+class BudgetEditView(views.APIView):
+    def post(self, request, *args, **kwargs):
+        category = request.data.get("category", None)
+        date = request.data.get("date", None)
+        amount = request.data.get("amount", None)
+
+        if category is None or date is None or amount is None:
+            return Response(
+                {"error": "category, date, and amount are required"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            category = Category.objects.get(id=category)
+        except Category.DoesNotExist:
+            return Response(
+                {"error": "category does not exist"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            date = pd.to_datetime(date)
+        except ValueError:
+            return Response(
+                {"error": "date must be in YYYY-MM-DD format"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            amount = float(amount)
+        except ValueError:
+            return Response(
+                {"error": "amount must be a number"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        # unique together validation, update if exists
+        try:
+            budget_edit = BudgetEdit.objects.get(category=category, date=date)
+            budget_edit.amount = amount
+            budget_edit.save()
+
+        except BudgetEdit.DoesNotExist:  # create if does not exist
+            try:
+                budget_edit = BudgetEdit.objects.create(
+                    category=category,
+                    date=date,
+                    amount=amount
+                )
+            except ValidationError as e:
+                return Response(
+                    {"error": e.messages},
+                    HTTP_400_BAD_REQUEST
+                )
+
+        serializer = BudgetEditSerializer(budget_edit)
+
+        return Response(serializer.data, HTTP_200_OK)
+
+    def delete(self, request, *args, **kwargs):
+        budget_edit = request.data.get("budget_edit", None)
+
+        if budget_edit is None:
+            return Response(
+                {"error": "budget_edit is required"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        try:
+            budget_edit = BudgetEdit.objects.get(id=budget_edit)
+        except BudgetEdit.DoesNotExist:
+            return Response(
+                {"error": "budget_edit does not exist"},
+                HTTP_400_BAD_REQUEST
+            )
+
+        budget_edit.delete()
+
+        return Response({"success": "budget_edit deleted"}, HTTP_200_OK)
