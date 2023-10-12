@@ -1,6 +1,7 @@
 import React from "react"
 import FormInput from "./FormInput"
 import * as dateUtils from "../modules/dateUtils"
+import * as selectionUtils from "../modules/selectionUtils"
 import "../styles/BudgetTable.css"
 
 export const BudgetTable = ({ props }) => {
@@ -22,6 +23,7 @@ export const BudgetTable = ({ props }) => {
                 }
             })
     }, [dataChanged, startDate, endDate])
+
 
     const handleMinus1Day = () => {
         const newStartDate = new Date(`${startDate}T12:00:00.000Z`)
@@ -133,39 +135,94 @@ const Row = ({ date, data, balance, selected, onRowClick }) => {
             <tr className={selected ? "selected" : ""} onClick={handleClick}>
                 <td>{dateUtils.getWeekday(date)}</td>
                 <td>{dateUtils.formatDate(date)}</td>
-                <td className="fixed number-column">{
-                    toCurrency(Math.abs(
-                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
-                    ))
-                }</td>
-                <td className="variable number-column">{
-                    toCurrency(Math.abs(
-                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
-                    ))
-                }</td>
-                <td className="discretionary number-column">{
-                    toCurrency(Math.abs(
-                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
-                    ))
-                }</td>
-                <td className="income number-column">{
-                    toCurrency(Math.abs(
-                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
-                    ))
-                }</td>
-                <td className="savings number-column">{
-                    toCurrency(Math.abs(
-                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
-                    ))
-                }</td>
-                <td className="total number-column">{
-                    toCurrency(Math.abs(
-                        data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
-                    ))
-                }</td>
+                <td className="fixed number-column"
+                    style={
+                        {
+                            color: Math.abs(
+                                data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
+                            ) === 0 ? "#ccc" : ""
+                        }
+                    }>
+                    {
+                        toCurrency(Math.abs(
+                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Fixed || 0
+                        ))
+                    }
+                </td>
+                <td className="variable number-column"
+                    style={
+                        {
+                            color: Math.abs(
+                                data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
+                            ) === 0 ? "#ccc" : ""
+                        }
+                    }>
+                    {
+                        toCurrency(Math.abs(
+                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Variable || 0
+                        ))
+                    }
+                </td>
+                <td className="discretionary number-column"
+                    style={
+                        {
+                            color: Math.abs(
+                                data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
+                            ) === 0 ? "#ccc" : ""
+                        }
+                    }>
+                    {
+                        toCurrency(Math.abs(
+                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Discretionary || 0
+                        ))
+                    }
+                </td>
+                <td className="income number-column"
+                    style={
+                        {
+                            color: Math.abs(
+                                data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
+                            ) === 0 ? "#ccc" : ""
+                        }
+                    }>
+                    {
+                        toCurrency(Math.abs(
+                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Income || 0
+                        ))
+                    }
+                </td>
+                <td className="savings number-column"
+                    style={
+                        {
+                            color: Math.abs(
+                                data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
+                            ) === 0 ? "#ccc" : ""
+                        }
+                    }>
+                    {
+                        toCurrency(Math.abs(
+                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.group_totals.Savings || 0
+                        ))
+                    }
+                </td>
+                <td className="total number-column"
+                    style={
+                        {
+                            color: (
+                                data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
+                            ) === 0 ? "#ccc" : ""
+                        }
+                    }>
+                    {
+                        toCurrency(
+                            data.filter(row => row.date === dateUtils.formatDate(date))[0]?.row_total || 0
+                        )
+                    }
+                </td>
                 <td className={`number-column ${balance < 0 ? "balance-negative" : "balance"}`}>{
                     toCurrency(balance)
-                }</td>
+                }
+                </td>
             </tr>
             {selected && <tr className="details-row">
                 <td colSpan="9">
@@ -178,60 +235,136 @@ const Row = ({ date, data, balance, selected, onRowClick }) => {
 
 
 const RowDetails = ({ details }) => {
-    console.log(details)
+    const rowRefs = React.useRef([])
+    const [selectedCategories, setSelectedCategories] = React.useState([])
+    const [selectedRows, setSelectedRows] = React.useState([])
+
+    React.useEffect(() => {
+        setSelectedCategories(
+            rowRefs.current.filter((_, index) => selectedRows.includes(index))
+                .map(row => details.categories.find(category => category.name === row.children[1].innerText))
+        )
+    }, [selectedRows])
+
+    const clearSelection = () => {
+        setSelectedRows([])
+        setSelectedCategories([])
+    }
+
+    const handleAddClick = () => {
+        console.log("Add")
+    }
+
+    const handleEditClick = () => {
+        console.log("Edit")
+    }
+
+    const handleDeleteClick = () => {
+        console.log("Delete")
+    }
+
     return (
         <div className="details">
             <table>
                 <thead>
                     <tr>
+                        <th></th>
                         <th>Category</th>
                         <th className="number-column">Fixed</th>
                         <th className="number-column">Variable</th>
                         <th className="number-column">Discretionary</th>
                         <th className="number-column">Income</th>
                         <th className="number-column">Savings</th>
+                        <th></th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
-                    {details?.group_totals && Object.keys(details.categories).map(category => {
+                    {details?.group_totals && Object.keys(details.categories).map((category, index) => {
                         return (
-                            <tr key={category}>
+                            <tr
+                                key={category}
+                                className={selectedRows.includes(index) ? "selected" : ""}
+                                onMouseDown={
+                                    (event) => selectionUtils.handleMouseDown(
+                                        event, index, selectedRows, setSelectedRows, clearSelection)
+                                }
+                                ref={rowRef => rowRefs.current[index] = rowRef}
+                            >
+                                <td></td>
                                 <td>{details.categories[category]?.name}</td>
-                                <td className="fixed number-column">
+                                <td
+                                    className="fixed number-column"
+                                    style={
+                                        {
+                                            color: details.categories[category]?.group === "Fixed" ?
+                                                details.categories[category].amount ?
+                                                    "" : "#ccc" : "#ccc"
+                                        }}>
                                     {
                                         toCurrency(
                                             details.categories[category]?.group === "Fixed" ? details.categories[category].amount : 0
                                         )
                                     }
                                 </td>
-                                <td className="variable number-column">
+                                <td
+                                    className="variable number-column"
+                                    style={
+                                        {
+                                            color: details.categories[category]?.group === "Variable" ?
+                                                details.categories[category].amount ?
+                                                    "" : "#ccc" : "#ccc"
+                                        }}>
                                     {
                                         toCurrency(
                                             details.categories[category]?.group === "Variable" ? details.categories[category].amount : 0
                                         )
                                     }
                                 </td>
-                                <td className="discretionary number-column">
+                                <td
+                                    className="discretionary number-column"
+                                    style={
+                                        {
+                                            color: details.categories[category]?.group === "Discretionary" ?
+                                                details.categories[category].amount ?
+                                                    "" : "#ccc" : "#ccc"
+                                        }}>
                                     {
                                         toCurrency(
                                             details.categories[category]?.group === "Discretionary" ? details.categories[category].amount : 0
                                         )
                                     }
                                 </td>
-                                <td className="income number-column">
+                                <td
+                                    className="income number-column"
+                                    style={
+                                        {
+                                            color: details.categories[category]?.group === "Income" ?
+                                                details.categories[category].amount ?
+                                                    "" : "#ccc" : "#ccc"
+                                        }}>
                                     {
                                         toCurrency(
                                             details.categories[category]?.group === "Income" ? details.categories[category].amount : 0
                                         )
                                     }
                                 </td>
-                                <td className="savings number-column">
+                                <td
+                                    className="savings number-column"
+                                    style={
+                                        {
+                                            color: details.categories[category]?.group === "Savings" ?
+                                                details.categories[category].amount ?
+                                                    "" : "#ccc" : "#ccc"
+                                        }}>
                                     {
                                         toCurrency(
                                             details.categories[category]?.group === "Savings" ? details.categories[category].amount : 0
                                         )
                                     }
                                 </td>
+                                <td></td>
+                                <td></td>
                             </tr>
                         )
                     })}
@@ -240,8 +373,8 @@ const RowDetails = ({ details }) => {
             <div className="details-footer">
                 <div className="button-bar">
                     <button className="button">Add</button>
-                    <button className="button" disabled={true}>Edit</button>
-                    <button className="button" disabled={true}>Delete</button>
+                    <button className="button" disabled={selectedCategories.length !== 1}>Edit</button>
+                    <button className="button" disabled={selectedCategories.length === 0}>Delete</button>
                 </div>
             </div>
         </div>
