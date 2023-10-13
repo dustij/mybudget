@@ -141,6 +141,10 @@
     color: #000;
 }
 
+.budget-table tbody .details-row .selected td {
+    color: #0b5876;
+}
+
 .budget-table tbody .details-row tbody tr:hover td {
     color: #0b5876;
 }

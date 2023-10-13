@@ -95,7 +95,7 @@ const CategoryTable = ({ props }) => {
 
     const handleDeleteClick = () => {
         const handleConfirmDelete = () => {
-            fetch("http://localhost:8000/api/category-batch", {
+            fetch("http://localhost:8000/api/category-batch-delete", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"

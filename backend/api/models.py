@@ -210,6 +210,8 @@ class BudgetEdit(models.Model):
     category = models.ForeignKey(
         Category, on_delete=models.CASCADE, related_name="edits")
     amount = models.DecimalField(max_digits=9, decimal_places=2)
+    adjusted_amount = models.DecimalField(
+        max_digits=9, decimal_places=2, editable=False)
     date = models.DateField()
 
     class Meta:
@@ -217,3 +219,7 @@ class BudgetEdit(models.Model):
 
     def __str__(self) -> str:
         return f"{self.category.name} - {self.amount} - {self.date}"
+    
+    def save(self, *args, **kwargs) -> None:
+        self.adjusted_amount = self.amount if self.category.group == "Income" else self.amount * -1
+        return super().save(*args, **kwargs)
