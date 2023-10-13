@@ -51,7 +51,7 @@
     background-color: #f9f9f9;
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: 2;
 }
 
 .budget-table tbody tr {
@@ -65,10 +65,18 @@
     font-weight: bold;
 }
 
+.budget-table table th:last-child {
+    padding-right: 15px;
+}
+
 .budget-table table tr td {
     padding: 2px 10px;
     font-size: 14px;
     color: #333333;
+}
+
+.budget-table table tr td:last-child {
+    padding-right: 15px;
 }
 
 .budget-table tbody tr:hover {
@@ -121,6 +129,8 @@
 .budget-table tbody .details-row thead {
     background-color: #f9f9f9;
     box-shadow: none;
+    position: relative;
+    z-index: 1;
 }
 
 .budget-table tbody .details-row thead tr:hover {
@@ -129,6 +139,10 @@
 
 .budget-table tbody .details-row tbody tr td {
     color: #000;
+}
+
+.budget-table tbody .details-row .selected td {
+    color: #0b5876;
 }
 
 .budget-table tbody .details-row tbody tr:hover td {

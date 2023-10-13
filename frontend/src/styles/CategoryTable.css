@@ -55,10 +55,18 @@
     font-weight: bold;
 }
 
+.category-table table th:last-child {
+    padding-right: 15px;
+}
+
 .category-table table tr td {
     padding: 2px 10px;
     font-size: 14px;
     color: #333333;
+}
+
+.category-table table tr td:last-child {
+    padding-right: 15px;
 }
 
 .category-table tbody tr:hover {

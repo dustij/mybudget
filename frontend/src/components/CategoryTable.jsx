@@ -3,6 +3,7 @@ import CategoryForm from "./CategoryForm"
 import { useFlashMessage } from "../hooks/useFlashMessage"
 import { useModalWindow } from "../hooks/useModalWindow"
 import { formatCurrency } from "../modules/currencyUtils"
+import * as selectionUtils from "../modules/selectionUtils"
 import "../styles/CategoryTable.css"
 
 const CategoryTable = ({ props }) => {
@@ -41,7 +42,7 @@ const CategoryTable = ({ props }) => {
 
     React.useEffect(() => {
         setSelectedCategories(
-            rowRefs.current.filter((row, index) => selectedRows.includes(index))
+            rowRefs.current.filter((_, index) => selectedRows.includes(index))
                 .map(row => categories.find(category => category.name === row.firstChild.innerText))
         )
     }, [selectedRows])
@@ -94,7 +95,7 @@ const CategoryTable = ({ props }) => {
 
     const handleDeleteClick = () => {
         const handleConfirmDelete = () => {
-            fetch("http://localhost:8000/api/category-batch", {
+            fetch("http://localhost:8000/api/category-batch-delete", {
                 method: "DELETE",
                 headers: {
                     "Content-Type": "application/json"
@@ -133,35 +134,6 @@ const CategoryTable = ({ props }) => {
         })
     }
 
-    function handleMouseDown(event, index) {
-        if (event.button !== 0) return // Only handle left mouse button
-
-        if (event.shiftKey) {
-            event.preventDefault()
-            // Select range of rows
-            const firstIndex = selectedRows.length ? selectedRows[0] : index
-            const range = Array(Math.abs(index - firstIndex) + 1)
-                .fill()
-                .map((_, i) => Math.min(index, firstIndex) + i)
-            setSelectedRows(range)
-        } else if (event.ctrlKey || event.metaKey) {
-            // Toggle individual row
-            setSelectedRows((prevSelectedRows) =>
-                prevSelectedRows.includes(index)
-                    ? prevSelectedRows.filter((i) => i !== index)
-                    : [...prevSelectedRows, index]
-            )
-        } else {
-            // Select individual row
-            if (selectedRows.length === 1 && selectedRows[0] === index) {
-                // Clear selection if row is already selected
-                clearSelection()
-            } else {
-                setSelectedRows([index])
-            }
-        }
-    }
-
     return (
         <div className="category-table">
             <div className="category-toolbar">
@@ -189,7 +161,10 @@ const CategoryTable = ({ props }) => {
                             <tr
                                 key={category.id}
                                 className={selectedRows.includes(index) ? "selected" : ""}
-                                onMouseDown={(event) => handleMouseDown(event, index)}
+                                onMouseDown={
+                                    (event) => selectionUtils.handleMouseDown(
+                                        event, index, selectedRows, setSelectedRows, clearSelection)
+                                }
                                 ref={rowRef => rowRefs.current[index] = rowRef}
                             >
                                 <td>{category.name}</td>

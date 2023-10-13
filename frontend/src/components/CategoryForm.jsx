@@ -5,6 +5,16 @@ import { useFlashMessage } from "../hooks/useFlashMessage"
 import { formatDate } from "../modules/dateUtils"
 import "../styles/categoryForm.css"
 
+// The component uses the useEffect hook to handle form submission and update the state 
+// variables accordingly. When the form is submitted, the handleSubmit function is called, 
+// which sets the isSubmitting state variable to true. The useEffect hook then checks if 
+// isSubmitting is true, and if so, sends a POST or PUT request to the server to create or 
+// update the category. Once the request is complete, the doneSubmitting state variable is 
+// set to true, which triggers another useEffect hook that resets the form inputs and calls 
+// the onSubmit prop function.
+
+
+
 const CategoryForm = (props) => {
     const { showMessage } = useFlashMessage()
     const nameInputRef = React.useRef()
@@ -259,7 +269,7 @@ const CategoryForm = (props) => {
     return (
         <form className="category-form" onSubmit={handleSubmit}>
             <div className="category-form-content">
-                <div className="primar-form">
+                <div className="primary-form">
                     <FormInput
                         id="name"
                         name="name"
@@ -304,7 +314,7 @@ const CategoryForm = (props) => {
                 </div>
 
                 {isRepeat &&
-                    <div className="secondaryForm">
+                    <div className="secondary-form">
                         <FormInput
                             id="startDate"
                             name="start_date"
