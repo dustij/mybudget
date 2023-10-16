@@ -158,8 +158,15 @@ class BudgetView(views.APIView):
             )
 
         try:
+            # get earliest date among rules and budget_edits
             start_date = pd.to_datetime(
-                Rule.objects.earliest("start_date").start_date)
+                min(
+                    [
+                        Rule.objects.earliest("start_date").start_date,
+                        BudgetEdit.objects.earliest("date").date
+                    ]
+                )
+            )
             end_date = pd.to_datetime(end_date)
 
         except ValueError:
@@ -175,18 +182,6 @@ class BudgetView(views.APIView):
             )
 
         # get categories
-        # all_categories = Category.objects.filter(rule__isnull=False)
-        # fixed_categories = Category.objects.filter(group="Fixed").filter(
-        #     rule__isnull=False)
-        # variable_categories = Category.objects.filter(group="Variable").filter(
-        #     rule__isnull=False)
-        # discretionary_categories = Category.objects.filter(
-        #     group="Discretionary").filter(rule__isnull=False)
-        # income_categories = Category.objects.filter(group="Income").filter(
-        #     rule__isnull=False)
-        # savings_categories = Category.objects.filter(group="Savings").filter(
-        #     rule__isnull=False)
-
         all_categories = Category.objects.all()
         fixed_categories = Category.objects.filter(group="Fixed")
         variable_categories = Category.objects.filter(group="Variable")
@@ -262,22 +257,6 @@ class BudgetView(views.APIView):
 
         # remove duplicates and sort
         all_occurrences = all_occurrences.drop_duplicates().sort_values()
-
-        # # for debugging:
-
-        # debug_individual_occuerences_keys = individual_occurrences.keys()
-        # debug_all_ocategories_names = all_categories.values_list(
-        #     "name", flat=True)
-        
-        # # find difference between debug_individual_occuerences_keys and debug_all_ocategories_names
-
-        # print("debug_individual_occuerences_keys")
-        # print(debug_individual_occuerences_keys)
-        # print("debug_all_ocategories_names")
-        # print(debug_all_ocategories_names)
-
-        # #
-
 
         # create dataframe with columns for date, categories, group_totals, row_total, and balance
         categories_data = all_occurrences.map(

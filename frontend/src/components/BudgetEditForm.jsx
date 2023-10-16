@@ -54,10 +54,10 @@ const BudgetEditForm = (props) => {
             })
                 .then(response => {
                     if (response.status === 201) {
-                        showMessage("Budget edit added successfully", "success")
+                        showMessage("Budget edit added successfully.", "success")
                         return response.json()
                     } else {
-                        showMessage("Failed to add budget edit", "error")
+                        showMessage("Failed to add budget edit.", "error")
                     }
                 })
                 .then(() => setDoneSubmitting(true))
