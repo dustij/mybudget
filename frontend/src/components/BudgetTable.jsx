@@ -3,18 +3,28 @@ import FormInput from "./FormInput"
 import BudgetEditForm from "./BudgetEditForm"
 import { useFlashMessage } from "../hooks/useFlashMessage"
 import { useModalWindow } from "../hooks/useModalWindow"
+import { useLoadingSpinner } from "../hooks/useLoadingSpinner"
 import * as currencyUtils from "../modules/currencyUtils"
 import * as dateUtils from "../modules/dateUtils"
 import * as selectionUtils from "../modules/selectionUtils"
 import "../styles/BudgetTable.css"
 
-// TODO: add loading spinner while fetching data
 export const BudgetTable = ({ props }) => {
     const [startDate, setStartDate] = React.useState(dateUtils.formatDate(new Date()))
     const [endDate, setEndDate] = React.useState(dateUtils.formatDate(dateUtils.getNext30Days()[30]))
     const [data, setData] = React.useState([])
     const [dataChanged, setDataChanged] = React.useState(false)
     const [selectedRow, setSelectedRow] = React.useState(null)
+    const [isLoading, setIsLoading] = React.useState(true)
+    const {showLoadingSpinner, hideLoadingSpinner} = useLoadingSpinner()
+
+    React.useEffect(() => {
+        if (!isLoading) {
+            hideLoadingSpinner()
+            return
+        }
+        showLoadingSpinner()
+    }, [isLoading])
 
     React.useEffect(() => {
         fetch(`http://localhost:8000/api/budget?start_date=${startDate}&end_date=${endDate}`)
@@ -27,7 +37,20 @@ export const BudgetTable = ({ props }) => {
                     setDataChanged(false)
                 }
             })
+            .catch(error => {
+                console.log(error)
+            })
+            .finally(() => {
+                setIsLoading(false)
+            })
     }, [dataChanged, startDate, endDate])
+
+    React.useEffect(() => {
+        if (!dataChanged) {
+            return
+        }
+        setIsLoading(true)
+    }, [dataChanged])
 
 
     const handleMinus1Day = () => {
@@ -244,7 +267,6 @@ const Row = ({ date, data, balance, selected, onRowClick, dataChanged, setDataCh
     )
 }
 
-// TODO: add styling to a budget edit, add button to revert edit back to rule for that date
 const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
     const { showMessage } = useFlashMessage()
     const { showModalWindow, hideModalWindow } = useModalWindow()
@@ -252,16 +274,21 @@ const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
     const [selectedCategories, setSelectedCategories] = React.useState([])
     const [selectedRows, setSelectedRows] = React.useState([])
     const [parsedDetails, setParsedDetails] = React.useState(details)
+    const [budgetEditCatgories, setBudgetEditCategories] = React.useState([])
 
     React.useEffect(() => {
         if (!details) {
-            return
+            return setParsedDetails(details)
         }
+
+        // save edits to a list for styling
+        let edittedCategories = []
 
         // combine the categories list and budget_edits list, use budget_edits amount if both lists share the same category id
         let categories = details.categories.map(category => {
             const budget_edit = details.budget_edits.find(budget_edit => budget_edit.category.id === category.id)
             if (budget_edit) {
+                edittedCategories.push(budget_edit.category.name)
                 return {
                     ...category,
                     amount: budget_edit.amount
@@ -273,11 +300,7 @@ const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
 
         // add to categories list any budget_edits that are not in the categories list
         let budget_edits = details.budget_edits.filter(budget_edit => !categories.find(category => category.id === budget_edit.category.id))
-
-        // remove any budget_edits that have a $0 amount and are not in the categories list
-        // note: categories with a rule that have $0 budget_edit amount will still be shown in details, this is intentional
-        budget_edits = budget_edits.filter(budget_edit => budget_edit.amount !== "0.00")
-
+        
         categories = categories.concat(budget_edits.map(budget_edit => {
             return {
                 ...budget_edit.category,
@@ -289,6 +312,7 @@ const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
             ...details,
             categories: categories
         })
+        setBudgetEditCategories(edittedCategories.concat(budget_edits.map(budget_edit => budget_edit.category.name)))
     }, [details])
 
     React.useEffect(() => {
@@ -327,17 +351,32 @@ const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
     }
 
     const handleEditClick = () => {
-        console.log("Edit")
+        showModalWindow({
+            title: "Add Budget Edit",
+            content: (
+                <BudgetEditForm
+                    budgetEdit={{
+                        category: selectedCategories[0].name,
+                        amount: selectedCategories[0].amount
+                    }}
+                    date={date}
+                    method="POST"
+                    onClick={hideModalWindow}
+                    onSubmit={() => {
+                        setDataChanged(true)
+                        hideModalWindow()
+                    }} />
+            )
+        })
     }
 
     const handleDeleteClick = () => {
         const handleConfirmDelete = () => {
             // filter out selected categories that are not budget edits
-
             const selectedBudgetEdits = selectedCategories.map(category => {
                 return details.budget_edits.find(budget_edit => budget_edit.category.id === category.id)
             })
-            
+
             fetch("http://localhost:8000/api/budget-edit-batch-delete", {
                 method: "DELETE",
                 headers: {
@@ -399,7 +438,10 @@ const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
                         return (
                             <tr
                                 key={category}
-                                className={selectedRows.includes(index) ? "selected" : ""}
+                                className={
+                                    (selectedRows.includes(index) ? "selected" : "")
+                                    + " " +
+                                    (budgetEditCatgories.includes(parsedDetails.categories[category].name) ? "budget-edit" : "")}
                                 onMouseDown={
                                     (event) => selectionUtils.handleMouseDown(
                                         event, index, selectedRows, setSelectedRows, clearSelection)

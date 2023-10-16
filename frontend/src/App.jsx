@@ -1,6 +1,8 @@
 import React from "react"
 import { FlashMessageProvider } from "./context/FlashMessageContext"
 import { ModalWindowProvider } from "./context/ModalWindowContext"
+import { LoadingSpinnerProvider } from "./context/LoadingSpinnerContext"
+import LoadingSpinner from "./components/LoadingSpinner"
 import FlashMessage from "./components/FlashMessage"
 import ModalWindow from "./components/ModalWindow"
 import TabLayout from "./components/TabLayout"
@@ -10,15 +12,18 @@ import "./styles/App.css"
 
 const App = () => {
     return (
-        <FlashMessageProvider>
-            <ModalWindowProvider>
-                <div className="app" tabIndex={0} role="application">
-                    <FlashMessage />
-                    <ModalWindow />
-                    <AppContent />
-                </div>
-            </ModalWindowProvider>
-        </FlashMessageProvider>
+        <LoadingSpinnerProvider>
+            <FlashMessageProvider>
+                <ModalWindowProvider>
+                    <div className="app" tabIndex={0} role="application">
+                        <LoadingSpinner />
+                        <FlashMessage />
+                        <ModalWindow />
+                        <AppContent />
+                    </div>
+                </ModalWindowProvider>
+            </FlashMessageProvider>
+        </LoadingSpinnerProvider>
     )
 }
 

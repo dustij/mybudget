@@ -6,7 +6,12 @@ import { formatDate } from "../modules/dateUtils"
 
 const BudgetEditForm = (props) => {
     const { showMessage } = useFlashMessage()
-    const [values, setValues] = React.useState({
+    const [values, setValues] = React.useState(
+        props.budgetEdit ? {
+            date: formatDate(props.date),
+            category: props.budgetEdit.category,
+            amount: props.budgetEdit.amount
+        } : {
         date: formatDate(props.date),
         category: "",
         amount: ""
@@ -19,7 +24,7 @@ const BudgetEditForm = (props) => {
     React.useEffect(() => {
         setValues({
             ...values,
-            category: categoryOptions[0]
+            category: values.category ? values.category : categoryOptions[0]
         })
     }, [categoryOptions])
 
