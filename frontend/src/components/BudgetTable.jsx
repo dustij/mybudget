@@ -27,6 +27,7 @@ export const BudgetTable = ({ props }) => {
     }, [isLoading])
 
     React.useEffect(() => {
+        setIsLoading(true)
         fetch(`http://localhost:8000/api/budget?start_date=${startDate}&end_date=${endDate}`)
             .then(response => response.json())
             .then(data => {
@@ -51,7 +52,6 @@ export const BudgetTable = ({ props }) => {
         }
         setIsLoading(true)
     }, [dataChanged])
-
 
     const handleMinus1Day = () => {
         const newStartDate = new Date(`${startDate}T12:00:00.000Z`)
@@ -300,7 +300,7 @@ const RowDetails = ({ date, details, dataChanged, setDataChanged }) => {
 
         // add to categories list any budget_edits that are not in the categories list
         let budget_edits = details.budget_edits.filter(budget_edit => !categories.find(category => category.id === budget_edit.category.id))
-        
+
         categories = categories.concat(budget_edits.map(budget_edit => {
             return {
                 ...budget_edit.category,

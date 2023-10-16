@@ -1,0 +1,5 @@
+TODO: add tab for monthly checklist
+TODO: add reminder alerts
+TODO: add live bank balance using Plaid
+TODO: add balance reconciliation, hints for discrepencies 
+        (i.e. if difference is equal to sum of certain category amounts, etc...)
