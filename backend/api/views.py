@@ -159,11 +159,17 @@ class BudgetView(views.APIView):
 
         try:
             # get earliest date among rules and budget_edits
+            earliest_date = None
+            try:
+                earliest_date = BudgetEdit.objects.earliest("date").date
+            except BudgetEdit.DoesNotExist:
+                earliest_date = datetime.today().date()
+
             start_date = pd.to_datetime(
                 min(
                     [
                         Rule.objects.earliest("start_date").start_date,
-                        BudgetEdit.objects.earliest("date").date
+                        earliest_date
                     ]
                 )
             )

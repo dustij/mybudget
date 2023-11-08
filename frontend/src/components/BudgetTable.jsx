@@ -143,7 +143,6 @@ export const BudgetTable = ({ props }) => {
                 </table>
             </div>
         </div>
-
     )
 }
 
