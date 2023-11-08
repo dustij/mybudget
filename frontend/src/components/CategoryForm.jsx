@@ -161,7 +161,7 @@ const CategoryForm = (props) => {
         })
             .then(res => {
                 if (res.status === 201) {
-                    showMessage("Rule created successfully", "success")
+                    showMessage("Rule created successfully.", "success")
                     return res.json()
                 } else {
                     return res.json().then(err => {
@@ -188,7 +188,7 @@ const CategoryForm = (props) => {
         })
             .then(res => {
                 if (res.status === 201) {
-                    showMessage("Category created successfully", "success")
+                    showMessage("Category created successfully.", "success")
                     return res.json()
                 } else {
                     return res.json().then(err => {
@@ -216,7 +216,7 @@ const CategoryForm = (props) => {
         })
             .then(res => {
                 if (res.status === 200) {
-                    showMessage("Category updated successfully", "success")
+                    showMessage("Category updated successfully.", "success")
                     return res.json()
                 } else {
                     return res.json().then(err => {
